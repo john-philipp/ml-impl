@@ -1,7 +1,7 @@
 import argparse
 
 from src.context.learning_context_config import DEFAULT_LEARNING_RATE, DEFAULT_POINTS_SQRT, DEFAULT_BATCH_SIZE, \
-    DEFAULT_EPOCHS, DEFAULT_LOG_EVERY
+    DEFAULT_EPOCHS, DEFAULT_LOG_EVERY, DEFAULT_CHECKPOINT_EPOCHS
 from src.enums.enums import TensorHandler, Device, Mode
 
 
@@ -16,6 +16,7 @@ class Args:
         self.log_every = parsed_args.log_every
         self.mode = parsed_args.mode
         self.use_checkpoint = parsed_args.use_checkpoint
+        self.checkpoint_epochs = parsed_args.checkpoint_epochs
 
 
 def parse_args(*args):
@@ -66,6 +67,11 @@ def parse_args(*args):
     arg_parser.add_argument(
         "--use-checkpoint", "-c",
         action="store_true")
+
+    arg_parser.add_argument(
+        "--checkpoint-epochs",
+        default=DEFAULT_CHECKPOINT_EPOCHS,
+        type=int)
 
     parsed_args = arg_parser.parse_args(args=args)
     return Args(parsed_args)
