@@ -127,7 +127,7 @@ class Context:
 
     def try_load_checkpoint(self, path):
         log.info("Trying to load checkpoint...")
-        if not os.path.isfile(path):
+        if not path or not os.path.isfile(path):
             log.warning(f"No such checkpoint: {path}")
             return
 
@@ -179,7 +179,6 @@ class Context:
         self.update_w()
         self.update_b()
 
-        # print(f"{self.j:.4f} {sum(self.w):.4f} {self.b:.7f}")
         return self.j
 
     def infer(self, image_path):
