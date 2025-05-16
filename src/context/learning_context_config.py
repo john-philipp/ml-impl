@@ -12,4 +12,3 @@ class LearningContextConfig:
         self.learning_rate: float = learning_rate or DEFAULT_LEARNING_RATE
         self.image_size: tuple[int, int] = image_size or DEFAULT_IMAGE_SIZE
         self.batch_size: int = batch_size or DEFAULT_BATCH_SIZE
-        self.try_cuda: bool = True
