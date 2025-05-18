@@ -9,6 +9,7 @@ class ParserModelInfer(IParser):
 
         parser = parent_parser.add_parser(
             description="Run inference.",
+            help="Check model output against (ideally unseen) input.",
             name=ModelActionType.INFER)
 
         return parser

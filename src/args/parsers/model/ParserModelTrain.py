@@ -15,21 +15,25 @@ class ParserModelTrain(IParser):
 
         parser.add_argument(
             "--learning-rate", "-l",
+            help="Specify the learning rate of the model.",
             default=DEFAULT_LEARNING_RATE,
             type=float)
 
         parser.add_argument(
             "--epochs", "-e",
+            help="Run for this many epochs.",
             default=DEFAULT_EPOCHS,
             type=int)
 
         parser.add_argument(
             "--log-every",
+            help="Logs cost every {log-every} epochs.",
             default=DEFAULT_LOG_EVERY,
             type=int)
 
         parser.add_argument(
             "--checkpoint-epochs",
+            help="Create a checkpoint every this many epochs.",
             default=DEFAULT_CHECKPOINT_EPOCHS,
             type=int)
 

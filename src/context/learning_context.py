@@ -20,6 +20,7 @@ class LearningContext:
         self.image_shape = config.image_size
         self.image_width = config.image_size[0]
         self.image_height = config.image_size[1]
+        self.batch_offset = config.batch_offset
         self.batch_size = config.batch_size
 
         self.tensor_handler = tensor_handler

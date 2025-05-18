@@ -3,7 +3,7 @@ import os
 from src.methods import get_timestamp
 
 
-DEFAULT_LOGS_REL_DIR = "logs"
+DEFAULT_LOGS_REL_DIR = "_generated/logs"
 
 
 class LogHandler:

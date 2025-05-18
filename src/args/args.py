@@ -11,8 +11,10 @@ class Args:
         self.use_checkpoint = None
         self.tensor_handler = None
         self.learning_rate = None
+        self.batch_offset = None
         self.batch_size = None
         self.log_every = None
+        self.datasets = None
         self.pts_sqrt = None
         self.testing = None
         self.device = None

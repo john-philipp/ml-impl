@@ -1,4 +1,3 @@
-import argparse
 import logging
 import sys
 import time
@@ -32,10 +31,12 @@ if __name__ == '__main__':
 
     log_handler = LogHandler()
     checkpoint_handler = CheckpointHandler(log_handler, args.tensor_handler)
-    tensor_handler_config = TensorHandlerConfig(use_cuda=args.device == DeviceType.CUDA)
+    tensor_handler_config = TensorHandlerConfig(
+        use_cuda=args.device == DeviceType.CUDA)
     learning_context_config = LearningContextConfig(
         image_size=(args.pts_sqrt, args.pts_sqrt),
         learning_rate=args.learning_rate,
+        batch_offset=args.batch_offset,
         batch_size=args.batch_size,
         testing=args.testing)
 
@@ -56,10 +57,12 @@ if __name__ == '__main__':
         if args.mode == ModeType.MODEL:
 
             if args.action == ModelActionType.TRAIN:
+                if len(args.datasets) != 2:
+                    raise ValueError("Must specify exactly two datasets.")
 
                 log.info("Training...")
-                ctx.load_data(".datasets/cats_dogs/dogs", 0)
-                ctx.load_data(".datasets/cats_dogs/cats", 1)
+                for label, dataset_path in enumerate(args.datasets):
+                    ctx.load_data(dataset_path, label)
                 ctx.accumulate_data()
                 ctx.normalise_data()
 
@@ -80,18 +83,31 @@ if __name__ == '__main__':
                         new_data = False
 
             elif args.action == ModelActionType.INFER:
+                if len(args.datasets) != 2:
+                    raise ValueError("Must specify exactly two datasets.")
 
                 # Infer.
                 log.info("Inferring...")
-                for type_ in ["dog", "cat"]:
-                    dir_path = f".datasets/cats_dogs/{type_}s/"
-                    files = os.listdir(dir_path)
+                total_count, total_passes = 0, 0
+                for expected_label, dataset_path in enumerate(args.datasets):
+                    files = os.listdir(dataset_path)
                     files.sort()
 
-                    # Temporary only. But basically infer against files not in the configured batch.
-                    for file in files[args.batch_size:args.batch_size + 10]:
-                        expected_label = 0 if type_ == "dog" else 1
-                        print(f"{type_}: predicted={ctx.infer(os.path.join(dir_path, file), expected_label)} expected={expected_label}")
+                    count, passes = 0, 0
+                    for count, file in enumerate(files[args.batch_offset: args.batch_offset + args.batch_size]):
+                        inferred = ctx.infer(os.path.join(dataset_path, file), expected_label).item()
+                        inferred_label = 0 if inferred < 0.5 else 1
+                        as_expected = inferred_label == expected_label
+                        relation = "==" if as_expected else "!="
+                        pass_fail = "PASS" if as_expected else "FAIL"
+                        log.info(f"{dataset_path}: "
+                              f"predicted={inferred:.3f} -> {inferred_label} {relation} {expected_label} {pass_fail}")
+                        if as_expected:
+                            passes += 1
+                    log.info(f"Pass rate: {passes / (count + 1)}")
+                    total_count += count + 1
+                    total_passes += passes
+                log.info(f"Overall pass rate: {total_passes / total_count:.3f}")
             else:
                 raise ValueError(f"Unknown mode action: {args.mode}.{args.action}")
         else:
