@@ -1,3 +1,4 @@
+git+https://github.com/john-philipp/tools-arg-parse.git@v0.0.1#egg=arg_parse
 pillow~=10.4.0
 numpy~=1.24.4
 torch~=2.2.2

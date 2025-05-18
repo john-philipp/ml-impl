@@ -3,7 +3,7 @@ from logging import getLogger
 
 from src.context.learning_context_config import LearningContextConfig
 from src.methods import resize_image, load_image
-from src.tensor.interfaces import _ITensorHandler
+from src.tensor.interfaces import ITensorHandler
 
 
 log = getLogger(__name__)
@@ -11,7 +11,7 @@ log = getLogger(__name__)
 
 class LearningContext:
 
-    def __init__(self, config: LearningContextConfig, tensor_handler: _ITensorHandler):
+    def __init__(self, config: LearningContextConfig, tensor_handler: ITensorHandler):
         self._config = config
         self.alpha = config.learning_rate  # Learning rate.
         self.dimensions = config.image_size[0] * config.image_size[1] * 3
@@ -88,7 +88,17 @@ class LearningContext:
         for label, x in self.datas:
             m = x.shape[1]
             for j in range(0, m):
-                self.x[:, offset + j] = x[:, j]
+
+                if self._config.testing:
+                    if label == 0:
+                        self.tensor_handler.fill(self.x[:, offset + j], 0)
+                    elif label == 1:
+                        self.tensor_handler.fill(self.x[:, offset + j], 1)
+                    else:
+                        raise ValueError()
+                else:
+                    self.x[:, offset + j] = x[:, j]
+
                 self.y[offset + j] = label
             offset += m
 
@@ -96,7 +106,7 @@ class LearningContext:
         self.x = self.tensor_handler.normalise(self.x)
 
     def save_checkpoint(self, path):
-        log.info("Trying to save checkpoint...")
+        log.debug("Trying to save checkpoint...")
         log.info(f"Saving checkpoint: {path}")
         checkpoint_data = self.tensor_handler.concatenate(
             self.w, self.tensor_handler.scalar_to_array(self.b), axis=0)
@@ -104,7 +114,7 @@ class LearningContext:
         log.info("Done saving checkpoint.")
 
     def try_load_checkpoint(self, path):
-        log.info("Trying to load checkpoint...")
+        log.debug("Trying to load checkpoint...")
         if not path or not os.path.isfile(path):
             log.warning(f"No such checkpoint: {path}")
             return
@@ -125,7 +135,7 @@ class LearningContext:
             self.tensor_handler.multiply(
                 self.y,
                 self.tensor_handler.log(self.a)) + self.tensor_handler.multiply(
-            1 - self.y, self.tensor_handler.log(1 - self.a)))
+                    1 - self.y, self.tensor_handler.log(1 - self.a)))
 
     def update_dl_dz(self):
         self.dl_dz = self.a - self.y
@@ -159,13 +169,17 @@ class LearningContext:
 
         return self.j
 
-    def infer(self, image_path):
+    def infer(self, image_path, expected_label):
         self.m = 1
         self.x = self.tensor_handler.zeros((self.dimensions, self.m))
         image_data = self.load_image_data(image_path)
 
-        self.x[:, 0] = image_data
-        self.normalise_data()
+        if self._config.testing:
+            # Note we're not normalising the data here since we're using the label itself.
+            self.tensor_handler.fill(self.x[:, 0], expected_label)
+        else:
+            self.x[:, 0] = image_data
+            self.normalise_data()
 
         self.update_z()
         self.update_a()

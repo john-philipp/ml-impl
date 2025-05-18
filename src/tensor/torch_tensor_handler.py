@@ -2,11 +2,11 @@ import torch
 from PIL.Image import Image
 from torchvision import transforms
 
-from src.tensor.interfaces import _ITensorHandler
+from src.tensor.interfaces import ITensorHandler
 from src.tensor.tensor_handler_config import TensorHandlerConfig
 
 
-class _TorchTensorHandler(_ITensorHandler):
+class _TorchTensorHandler(ITensorHandler):
 
     def __init__(self, log, config: TensorHandlerConfig):
         super().__init__(log, config)
@@ -62,4 +62,13 @@ class _TorchTensorHandler(_ITensorHandler):
         return torch.sum(x)
 
     def unpack_checkpoint(self, checkpoint_data):
-        return checkpoint_data[:-1], checkpoint_data[-1].item()
+        w = checkpoint_data[:-1]
+        w.to(device=self._device)
+        b = checkpoint_data[-1].item()
+        return w, b
+
+    def is_nan(self, value):
+        return torch.isnan(value)
+
+    def fill(self, array, value):
+        array.fill_(value)

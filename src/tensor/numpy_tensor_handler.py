@@ -1,10 +1,10 @@
 import numpy as np
 from PIL.Image import Image
 
-from src.tensor.interfaces import _ITensorHandler
+from src.tensor.interfaces import ITensorHandler
 
 
-class _NumpyTensorHandler(_ITensorHandler):
+class _NumpyTensorHandler(ITensorHandler):
     def zeros(self, shape):
         return np.zeros(shape)
 
@@ -43,3 +43,9 @@ class _NumpyTensorHandler(_ITensorHandler):
 
     def unpack_checkpoint(self, checkpoint_data):
         return checkpoint_data[:-1], checkpoint_data[-1]
+
+    def is_nan(self, value):
+        return np.isnan(value)
+
+    def fill(self, array, value):
+        array.fill(value)

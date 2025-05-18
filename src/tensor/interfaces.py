@@ -5,7 +5,7 @@ from PIL.Image import Image
 from src.tensor.tensor_handler_config import TensorHandlerConfig
 
 
-class _ITensorHandler(ABC):
+class ITensorHandler(ABC):
     def __init__(self, log, config: TensorHandlerConfig):
         self._config = config
         self._log = log
@@ -60,4 +60,12 @@ class _ITensorHandler(ABC):
 
     @abstractmethod
     def unpack_checkpoint(self, checkpoint_data):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_nan(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def fill(self, array, value):
         raise NotImplementedError()

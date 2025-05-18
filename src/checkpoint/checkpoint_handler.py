@@ -1,9 +1,8 @@
 import os
-import pathlib
 from logging import getLogger
 from typing import Callable
 
-from src.enums.enums import TensorHandler
+from src.args.parsers.enums import TensorHandlerType
 from src.log.log_handler.log_handler import LogHandler
 
 
@@ -14,7 +13,7 @@ CHECKPOINTS_REL_DIR = "checkpoints"
 
 
 class CheckpointHandler:
-    def __init__(self, log_handler: LogHandler, tensor_handler: TensorHandler):
+    def __init__(self, log_handler: LogHandler, tensor_handler: TensorHandlerType):
         self.ext = self.get_ext(tensor_handler)
         self.base_dir = os.path.join(log_handler.curr_log_dir, CHECKPOINTS_REL_DIR)
         os.makedirs(self.base_dir, exist_ok=True)
@@ -22,9 +21,9 @@ class CheckpointHandler:
 
     @staticmethod
     def get_ext(tensor_handler):
-        if tensor_handler == TensorHandler.TORCH:
+        if tensor_handler == TensorHandlerType.TORCH:
             return "pt"
-        elif tensor_handler == TensorHandler.NUMPY:
+        elif tensor_handler == TensorHandlerType.NUMPY:
             return "npy"
         raise ValueError(f"Unknown tensor handler: {tensor_handler}")
 
@@ -43,9 +42,9 @@ class CheckpointHandler:
     def full_path(self, relative_path):
         return os.path.join(self.base_dir, relative_path)
 
-    def save(self, epoch, shape, cb_save: Callable[[str], None]):
+    def save(self, epoch, shape, cost, cb_save: Callable[[str], None]):
         next_ = self.find_next()
-        checkpoint_name = f"{next_}_{epoch:06}_{shape[0]}x{shape[1]}.{self.ext}"
+        checkpoint_name = f"{next_}_{epoch:06}_{cost:.2e}_{shape[0]}x{shape[1]}.{self.ext}"
         cb_save(self.full_path(checkpoint_name))
 
     def load_latest(self, shape, cb_load: Callable[[str], None]):
@@ -65,3 +64,11 @@ class CheckpointHandler:
 
         log.info(f"Will load checkpoint: {prev_checkpoint}")
         cb_load(prev_checkpoint)
+
+        try:
+            epochs_passed = int(os.path.basename(prev_checkpoint).split("_")[1])
+        except TypeError:
+            epochs_passed = 0
+
+        return epochs_passed
+

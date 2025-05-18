@@ -1,22 +1,28 @@
 import argparse
 
-from src.context.learning_context_config import DEFAULT_LEARNING_RATE, DEFAULT_POINTS_SQRT, DEFAULT_BATCH_SIZE, \
-    DEFAULT_EPOCHS, DEFAULT_LOG_EVERY, DEFAULT_CHECKPOINT_EPOCHS
-from src.enums.enums import TensorHandler, Device, Mode
+from arg_parse.parser_main import ParserMain
+
+from src.args.parsers.model.ParserModel import ParserModel
 
 
 class Args:
     def __init__(self, parsed_args):
-        self.tensor_handler = parsed_args.tensor_handler
-        self.device = parsed_args.device
-        self.learning_rate = parsed_args.learning_rate
-        self.pts_sqrt = parsed_args.pts_sqrt
-        self.batch_size = parsed_args.batch_size
-        self.epochs = parsed_args.epochs
-        self.log_every = parsed_args.log_every
-        self.mode = parsed_args.mode
-        self.use_checkpoint = parsed_args.use_checkpoint
-        self.checkpoint_epochs = parsed_args.checkpoint_epochs
+        self.checkpoint_epochs = None
+        self.use_checkpoint = None
+        self.tensor_handler = None
+        self.learning_rate = None
+        self.batch_size = None
+        self.log_every = None
+        self.pts_sqrt = None
+        self.testing = None
+        self.device = None
+        self.epochs = None
+        self.action = None
+        self.mode = None
+
+        for property_name in self.__dict__.keys():
+            if hasattr(parsed_args, property_name):
+                setattr(self, property_name, getattr(parsed_args, property_name))
 
 
 def parse_args(*args):
@@ -24,54 +30,9 @@ def parse_args(*args):
         prog="logistic-regression",
         description="Simple logistic regression based on gradient descent.")
 
-    arg_parser.add_argument(
-        "--tensor-handler", "-t",
-        choices=TensorHandler.choices(),
-        default=TensorHandler.TORCH)
+    parser = ParserMain(arg_parser, [
+        ParserModel(),
+    ])
 
-    arg_parser.add_argument(
-        "--device", "-d",
-        choices=Device.choices(),
-        default=Device.CUDA)
-
-    arg_parser.add_argument(
-        "--learning-rate", "-l",
-        default=DEFAULT_LEARNING_RATE,
-        type=float)
-
-    arg_parser.add_argument(
-        "--pts-sqrt", "-p",
-        default=DEFAULT_POINTS_SQRT,
-        type=int)
-
-    arg_parser.add_argument(
-        "--batch-size", "-b",
-        default=DEFAULT_BATCH_SIZE,
-        type=int)
-
-    arg_parser.add_argument(
-        "--epochs", "-e",
-        default=DEFAULT_EPOCHS,
-        type=int)
-
-    arg_parser.add_argument(
-        "--log-every",
-        default=DEFAULT_LOG_EVERY,
-        type=int)
-
-    arg_parser.add_argument(
-        "--mode", "-m",
-        default=Mode.TRAIN,
-        choices=Mode.choices())
-
-    arg_parser.add_argument(
-        "--use-checkpoint", "-c",
-        action="store_true")
-
-    arg_parser.add_argument(
-        "--checkpoint-epochs",
-        default=DEFAULT_CHECKPOINT_EPOCHS,
-        type=int)
-
-    parsed_args = arg_parser.parse_args(args=args)
-    return Args(parsed_args)
+    parsed_args = parser.parse_args(*args)
+    return Args(parsed_args), arg_parser
