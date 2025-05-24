@@ -1,13 +1,12 @@
-from arg_parse.ifaces import IParser
+from arg_parse.ifaces import IParserDef
 
+from src.args.defaults import Defaults
 from src.args.parsers.enums import ModelActionType
-from src.context.learning_context_config import DEFAULT_LEARNING_RATE, \
-    DEFAULT_EPOCHS, DEFAULT_LOG_EVERY, DEFAULT_CHECKPOINT_EPOCHS
 
 
-class ParserModelTrain(IParser):
+class ParserDefModelTrain(IParserDef):
 
-    def add_args(self, parent_parser):
+    def register_args(self, parent_parser):
 
         parser = parent_parser.add_parser(
             description="Train a model.",
@@ -16,25 +15,25 @@ class ParserModelTrain(IParser):
         parser.add_argument(
             "--learning-rate", "-l",
             help="Specify the learning rate of the model.",
-            default=DEFAULT_LEARNING_RATE,
+            default=Defaults.learning_rate,
             type=float)
 
         parser.add_argument(
             "--epochs", "-e",
             help="Run for this many epochs.",
-            default=DEFAULT_EPOCHS,
+            default=Defaults.epochs,
             type=int)
 
         parser.add_argument(
             "--log-every",
             help="Logs cost every {log-every} epochs.",
-            default=DEFAULT_LOG_EVERY,
+            default=Defaults.log_every,
             type=int)
 
         parser.add_argument(
             "--checkpoint-epochs",
             help="Create a checkpoint every this many epochs.",
-            default=DEFAULT_CHECKPOINT_EPOCHS,
+            default=Defaults.checkpoint_epochs,
             type=int)
 
         return parser

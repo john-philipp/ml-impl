@@ -1,11 +1,11 @@
-from arg_parse.ifaces import IParser
+from arg_parse.ifaces import IParserDef
 
 from src.args.parsers.enums import ModelActionType
 
 
-class ParserModelInfer(IParser):
+class ParserDefModelInfer(IParserDef):
 
-    def add_args(self, parent_parser):
+    def register_args(self, parent_parser):
 
         parser = parent_parser.add_parser(
             description="Run inference.",

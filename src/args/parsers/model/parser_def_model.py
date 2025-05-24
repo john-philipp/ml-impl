@@ -1,18 +1,18 @@
-from arg_parse.ifaces import IParser
+from arg_parse.ifaces import IParserDef
 
+from src.args.defaults import Defaults
 from src.args.parsers.enums import ModeType, MetaType, TensorHandlerType, DeviceType
-from src.args.parsers.model.ParserModelInfer import ParserModelInfer
-from src.args.parsers.model.ParserModelTrain import ParserModelTrain
-from src.context.learning_context_config import DEFAULT_BATCH_SIZE, DEFAULT_POINTS_SQRT, DEFAULT_BATCH_OFFSET
+from src.args.parsers.model.parser_def_model_infer import ParserDefModelInfer
+from src.args.parsers.model.parser_def_model_train import ParserDefModelTrain
 
 
-class ParserModel(IParser):
+class ParserDefModel(IParserDef):
 
-    def add_args(self, parent_parser):
+    def register_args(self, parent_parser):
 
         sub_parsers = [
-            ParserModelTrain(),
-            ParserModelInfer()
+            ParserDefModelTrain(),
+            ParserDefModelInfer()
         ]
 
         parser = parent_parser.add_parser(
@@ -26,7 +26,7 @@ class ParserModel(IParser):
             required=True)
 
         for sub_parser in sub_parsers:
-            sub_parser = sub_parser.add_args(action_parser)
+            sub_parser = sub_parser.register_args(action_parser)
             sub_parser.add_argument(
                 "--tensor-handler", "-t",
                 help="Which tensor handler to use (CUDA requires torch).",
@@ -44,13 +44,13 @@ class ParserModel(IParser):
                 help="Offset {batch_size} by {base_offset}. "
                      "Allows simple adding of further data into training/inference. "
                      "Basically a simple range to define our batch.",
-                default=DEFAULT_BATCH_OFFSET,
+                default=Defaults.batch_offset,
                 type=int)
 
             sub_parser.add_argument(
                 "--batch-size", "-b",
                 help="Use this many files in each dataset directory (if available).",
-                default=DEFAULT_BATCH_SIZE,
+                default=Defaults.batch_size,
                 type=int)
 
             sub_parser.add_argument(
@@ -64,10 +64,10 @@ class ParserModel(IParser):
                 action="store_true")
 
             sub_parser.add_argument(
-                "--pts-sqrt", "-p",
+                "--points", "-p",
                 help="Determines the size of picture actually learnt on. "
                      "Aspect ratio is preserved. Pictures are padded.",
-                default=DEFAULT_POINTS_SQRT,
+                default=Defaults.points,
                 type=int)
 
             sub_parser.add_argument(

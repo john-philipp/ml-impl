@@ -22,8 +22,7 @@ log = getLogger(__name__)
 
 if __name__ == '__main__':
     log.info("Starting...")
-    args, arg_parser = parse_args(*sys.argv[1:])
-    args = Args(args)
+    args = parse_args(*sys.argv[1:])
 
     # Validation.
     if args.device == DeviceType.CUDA and args.tensor_handler != TensorHandlerType.TORCH:
@@ -31,14 +30,8 @@ if __name__ == '__main__':
 
     log_handler = LogHandler()
     checkpoint_handler = CheckpointHandler(log_handler, args.tensor_handler)
-    tensor_handler_config = TensorHandlerConfig(
-        use_cuda=args.device == DeviceType.CUDA)
-    learning_context_config = LearningContextConfig(
-        image_size=(args.pts_sqrt, args.pts_sqrt),
-        learning_rate=args.learning_rate,
-        batch_offset=args.batch_offset,
-        batch_size=args.batch_size,
-        testing=args.testing)
+    tensor_handler_config = TensorHandlerConfig(use_cuda=args.device == DeviceType.CUDA)
+    learning_context_config = LearningContextConfig(**args.__dict__)
 
     tensor_handler_cls = find_tensor_handler_cls(args.tensor_handler)
     tensor_handler: ITensorHandler = tensor_handler_cls(log, tensor_handler_config)
