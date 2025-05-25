@@ -6,7 +6,7 @@ import os
 
 from logging import basicConfig, getLogger
 
-from src.args.args import parse_args, Args
+from src.args.args import parse_args, Args, AppArgs
 from src.args.parsers.enums import ModeType, ModelActionType, TensorHandlerType, DeviceType
 from src.checkpoint.checkpoint_handler import CheckpointHandler
 from src.context.learning_context import LearningContext
@@ -15,6 +15,7 @@ from src.log.log_handler.log_handler import LogHandler
 from src.tensor import find_tensor_handler_cls
 from src.tensor.interfaces import ITensorHandler
 from src.tensor.tensor_handler_config import TensorHandlerConfig
+
 
 basicConfig(level=logging.INFO)
 log = getLogger(__name__)
@@ -37,10 +38,6 @@ if __name__ == '__main__':
     tensor_handler: ITensorHandler = tensor_handler_cls(log, tensor_handler_config)
     ctx = LearningContext(learning_context_config, tensor_handler)
 
-    epoch = 0
-    if args.use_checkpoint:
-        epoch = checkpoint_handler.load_latest(ctx.image_shape, ctx.try_load_checkpoint)
-
     new_data = False
     t0_total = time.time()
     t0 = t0_total
@@ -53,27 +50,7 @@ if __name__ == '__main__':
                 if len(args.datasets) != 2:
                     raise ValueError("Must specify exactly two datasets.")
 
-                log.info("Training...")
-                for label, dataset_path in enumerate(args.datasets):
-                    ctx.load_data(dataset_path, label)
-                ctx.accumulate_data()
-                ctx.normalise_data()
-
-                for epoch in range(epoch, args.epochs + epoch):
-                    epoch += 1
-                    cost = ctx.train_epoch()
-                    t1 = time.time()
-                    new_data = True
-                    if epoch % args.log_every == 0:
-                        log.info(f"Epoch {epoch} done after {t1 - t0:.3f}s: cost={cost:.3e}")
-                        t0 = t1
-                    if tensor_handler.is_nan(cost):
-                        log.error(f"Cost is nan. Quitting. Try again with lower learning rate.")
-                        new_data = False
-                        break
-                    elif epoch % args.checkpoint_epochs == 0:
-                        checkpoint_handler.save(epoch, ctx.image_shape, cost, ctx.save_checkpoint)
-                        new_data = False
+                new_data = train(args, t0)
 
             elif args.action == ModelActionType.INFER:
                 if len(args.datasets) != 2:
@@ -93,8 +70,9 @@ if __name__ == '__main__':
                         as_expected = inferred_label == expected_label
                         relation = "==" if as_expected else "!="
                         pass_fail = "PASS" if as_expected else "FAIL"
-                        log.info(f"{dataset_path}: "
-                              f"predicted={inferred:.3f} -> {inferred_label} {relation} {expected_label} {pass_fail}")
+                        log.info(
+                            f"{dataset_path}: "
+                            f"predicted={inferred:.3f} -> {inferred_label} {relation} {expected_label} {pass_fail}")
                         if as_expected:
                             passes += 1
                     log.info(f"Pass rate: {passes / (count + 1)}")
