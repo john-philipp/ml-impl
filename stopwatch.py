@@ -3,26 +3,42 @@ import time
 
 class Stopwatch:
     def __init__(self):
-        self._start = None
-        self._elapsed = 0
+        self._times = []
         self._running = False
 
     def start(self):
+        if self._running:
+            raise AssertionError("Stopwatch already running.")
+        self._times.append(self._get_time())
+        self._running = True
+
+    def lap(self):
         if not self._running:
-            self._start = time.perf_counter()
-            self._running = True
+            raise AssertionError("Stopwatch not yet running.")
+        self._times.append(self._get_time())
+        return self.elapsed_last_lap()
 
     def stop(self):
-        if self._running:
-            self._elapsed += time.perf_counter() - self._start
-            self._running = False
+        if not self._running:
+            raise AssertionError("Stopwatch not yet running.")
+        self.lap()
+        self._running = False
+        return self.elapsed_total()
 
     def reset(self):
-        self._start = None
-        self._elapsed = 0
+        self._times.clear()
         self._running = False
 
-    def elapsed(self):
-        if self._running:
-            return self._elapsed + (time.perf_counter() - self._start)
-        return self._elapsed
+    def elapsed_last_lap(self):
+        if len(self._times) < 2:
+            raise ValueError("Need at least one complete lap first.")
+        return self._times[-1] - self._times[-2]
+
+    def elapsed_total(self):
+        if len(self._times) < 2:
+            raise ValueError("Need at least one complete lap first.")
+        return self._times[-1] - self._times[0]
+
+    @staticmethod
+    def _get_time():
+        return time.perf_counter()

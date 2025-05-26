@@ -2,13 +2,12 @@ from abc import ABC, abstractmethod
 
 from PIL.Image import Image
 
-from src.tensor.tensor_handler_config import TensorHandlerConfig
+from src.config.config import Config
 
 
 class ITensorHandler(ABC):
-    def __init__(self, log, config: TensorHandlerConfig):
+    def __init__(self, config: Config):
         self._config = config
-        self._log = log
 
     @abstractmethod
     def zeros(self, shape):

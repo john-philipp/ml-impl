@@ -1,7 +1,7 @@
 import os
 from logging import getLogger
 
-from src.context.learning_context_config import LearningContextConfig
+from src.config.config import Config
 from src.methods import resize_image, load_image
 from src.tensor.interfaces import ITensorHandler
 
@@ -9,17 +9,17 @@ from src.tensor.interfaces import ITensorHandler
 log = getLogger(__name__)
 
 
-class LearningContext:
+class LogisticRegressionImpl:
 
-    def __init__(self, config: LearningContextConfig, tensor_handler: ITensorHandler):
+    def __init__(self, config: Config, tensor_handler: ITensorHandler):
         self._config = config
         self.alpha = config.learning_rate  # Learning rate.
-        self.dimensions = config.image_size[0] * config.image_size[1] * 3
+        self.dimensions = config.points * config.points * 3
         self.datas = []
 
-        self.image_shape = config.image_size
-        self.image_width = config.image_size[0]
-        self.image_height = config.image_size[1]
+        self.image_shape = (config.points, config.points)
+        self.image_width = config.points
+        self.image_height = config.points
         self.batch_offset = config.batch_offset
         self.batch_size = config.batch_size
 
