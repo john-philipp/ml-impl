@@ -11,15 +11,6 @@ from src.args.parsers.model.parser_def_model import ParserDefModel
 log = logging.getLogger(__name__)
 
 
-def get_args_path():
-    args_path = "_args/args.yml"
-    return args_path
-
-
-def get_env_var_prefix():
-    return "SAMPLE"
-
-
 class AppArgs(Args):
     def __init__(self):
         super().__init__(globals())
@@ -43,6 +34,12 @@ def parse_args(*args):
     base_parser = argparse.ArgumentParser(
         prog="logistic-regression",
         description="Simple logistic regression based on gradient descent.")
+    base_parser.add_argument("-f", "--from-file", default=None, help="Args from file.")
+    base_parser.add_argument("-e", "--from-env", default=None, help="From env prefix.")
+
+    base_args = base_parser.parse_known_args(args)
+    top_level_args = base_args[0]
+    remaining_args = base_args[1]
 
     parser_def = ParserDefMain()
     parser_def.register_sub_parser(ParserDefModel())
@@ -50,10 +47,10 @@ def parse_args(*args):
 
     arg_parser = ArgParser(
         args_cls=AppArgs,
-        from_file_path=get_args_path(),
-        from_env_prefix=get_env_var_prefix())
+        from_file_path=top_level_args.from_file,
+        from_env_prefix=top_level_args.from_env)
 
-    parsed_args = arg_parser.parse_args(base_parser, *args)
+    parsed_args = arg_parser.parse_args(base_parser, *remaining_args)
     parsed_args.log()
 
     return parsed_args

@@ -21,7 +21,6 @@ class Trainer:
         tensor_handler_cls = find_tensor_handler_cls(config.tensor_handler)
         self._tensor_handler: ITensorHandler = tensor_handler_cls(config)
         self._impl = LogisticRegressionImpl(config, self._tensor_handler)
-
         self._epochs_trained = 0
 
     def train(self):
