@@ -3,7 +3,7 @@ import os
 
 from src.checkpoint.checkpoint_handler import CheckpointHandler
 from src.config.config import Config
-from src.context.logistic_regression_impl import LogisticRegressionImpl
+from src.impl import find_impl_cls
 from src.tensor import find_tensor_handler_cls
 from src.tensor.interfaces import ITensorHandler
 from stopwatch import Stopwatch
@@ -18,9 +18,10 @@ class Trainer:
         self._config = config
         self._stopwatch = Stopwatch()
         self._checkpoint_handler = CheckpointHandler(config, log_handler)
-        tensor_handler_cls = find_tensor_handler_cls(config.tensor_handler)
-        self._tensor_handler: ITensorHandler = tensor_handler_cls(config)
-        self._impl = LogisticRegressionImpl(config, self._tensor_handler)
+        self._tensor_handler_cls = find_tensor_handler_cls(config.tensor_handler)
+        self._tensor_handler: ITensorHandler = self._tensor_handler_cls(config)
+        self._impl_cls = find_impl_cls(config.impl)
+        self._impl = self._impl_cls(config, self._tensor_handler)
         self._epochs_trained = 0
 
     def train(self):

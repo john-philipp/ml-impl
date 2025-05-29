@@ -1,15 +1,15 @@
 import os
+from abc import ABC, abstractmethod
 from logging import getLogger
 
 from src.config.config import Config
-from src.methods import resize_image, load_image
+from src.methods import load_image, resize_image
 from src.tensor.interfaces import ITensorHandler
-
 
 log = getLogger(__name__)
 
 
-class LogisticRegressionImpl:
+class IImpl(ABC):
 
     def __init__(self, config: Config, tensor_handler: ITensorHandler):
         self._config = config
@@ -24,22 +24,7 @@ class LogisticRegressionImpl:
         self.batch_size = config.batch_size
 
         self.tensor_handler = tensor_handler
-
-        self.w = self.tensor_handler.zeros(self.dimensions)
-        self.b = 0
-
-        self.m = 0  # Sample count.
-        self.a = None  # Predictions. Activation function (sigmoid): 1 / (1 + e^-z)
-        self.x = None  # Inputs.
-        self.y = None  # Truth.
-
-        self.j = None  # Average cost over all samples.
-        self.z = None  # Logit (raw score prior to activation: z = w.T dot x + b
-
-        # Derivatives of J (cost) wrt to variable.
-        self.dl_dz = None
-        self.dw = None
-        self.db = None
+        self.m = 0
 
     def set_image_size(self, width, height):
         self.image_width = width
@@ -125,64 +110,12 @@ class LogisticRegressionImpl:
         self.w, self.b = self.tensor_handler.unpack_checkpoint(checkpoint_data)
         log.info("Done loading checkpoint.")
 
-    def update_z(self):
-        self.z = self.tensor_handler.multiply(self.w, self.x) + self.b
+    @abstractmethod
+    def train_epoch(self) -> float:
+        # Returns cost.
+        raise NotImplementedError()
 
-    def update_a(self):
-        self.a = 1 / (1 + self.tensor_handler.exp(-self.z))
-
-    def update_j(self):
-        self.j = (-1 / self.m) * (
-            self.tensor_handler.multiply(
-                self.y,
-                self.tensor_handler.log(self.a)) + self.tensor_handler.multiply(
-                    1 - self.y, self.tensor_handler.log(1 - self.a)))
-
-    def update_dl_dz(self):
-        self.dl_dz = self.a - self.y
-
-    def update_dj_dw(self):
-        self.dw = (1 / self.m) * self.tensor_handler.multiply(self.x, self.dl_dz)
-
-    def update_dj_db(self):
-        self.db = (1 / self.m) * self.tensor_handler.sum(self.dl_dz)
-
-    def update_w(self):
-        self.w -= self.alpha * self.dw
-
-    def update_b(self):
-        self.b -= self.alpha * self.db
-
-    def train_epoch(self):
-        # Forward propagation.
-        self.update_z()
-        self.update_a()
-        self.update_j()
-
-        # Backward propagation.
-        self.update_dl_dz()
-        self.update_dj_db()
-        self.update_dj_dw()
-
-        # Update weights and bias.
-        self.update_w()
-        self.update_b()
-
-        return self.j
-
-    def infer(self, image_path, expected_label):
-        self.m = 1
-        self.x = self.tensor_handler.zeros((self.dimensions, self.m))
-        image_data = self.load_image_data(image_path)
-
-        if self._config.testing:
-            # Note we're not normalising the data here since we're using the label itself.
-            self.tensor_handler.fill(self.x[:, 0], expected_label)
-        else:
-            self.x[:, 0] = image_data
-            self.normalise_data()
-
-        self.update_z()
-        self.update_a()
-
-        return self.a
+    @abstractmethod
+    def infer(self, image_path, expected_label) -> float:
+        # Returns prediction.
+        raise NotImplementedError()

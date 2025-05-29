@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 class AppArgs(Args):
     def __init__(self):
         super().__init__(globals())
+        self.hidden_layer_size = None
         self.checkpoint_epochs = None
         self.use_checkpoint = None
         self.tensor_handler = None
@@ -28,6 +29,7 @@ class AppArgs(Args):
         self.epochs = None
         self.action = None
         self.mode = None
+        self.impl = None
 
 
 def parse_args(*args):

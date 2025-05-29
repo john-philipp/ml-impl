@@ -1,5 +1,5 @@
 from src.args.args import AppArgs
-from src.args.parsers.enums import DeviceType, TensorHandlerType
+from src.args.parsers.enums import Device, TensorHandler
 
 
 class Config(AppArgs):
@@ -10,7 +10,7 @@ class Config(AppArgs):
         return config
 
     def use_cuda(self):
-        return self.device == DeviceType.CUDA
+        return self.device == Device.CUDA
 
     def use_torch(self):
-        return self.tensor_handler != TensorHandlerType.TORCH
+        return self.tensor_handler != TensorHandler.TORCH

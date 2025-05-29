@@ -68,3 +68,11 @@ class ITensorHandler(ABC):
     @abstractmethod
     def fill(self, array, value):
         raise NotImplementedError()
+
+    @abstractmethod
+    def relu(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def d_relu(self, value):
+        raise NotImplementedError()

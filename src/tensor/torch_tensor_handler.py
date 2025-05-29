@@ -77,3 +77,9 @@ class _TorchTensorHandler(ITensorHandler):
 
     def fill(self, array, value):
         array.fill_(value)
+
+    def relu(self, value):
+        return torch.maximum(value, torch.tensor(0.0))
+
+    def d_relu(self, value):
+        return (value > 0).float()

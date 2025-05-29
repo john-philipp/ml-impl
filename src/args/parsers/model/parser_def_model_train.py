@@ -1,7 +1,7 @@
 from arg_parse.ifaces import IParserDef
 
 from src.args.defaults import Defaults
-from src.args.parsers.enums import ModelActionType
+from src.args.parsers.enums import ModelAction
 
 
 class ParserDefModelTrain(IParserDef):
@@ -10,7 +10,7 @@ class ParserDefModelTrain(IParserDef):
 
         parser = parent_parser.add_parser(
             description="Train a model.",
-            name=ModelActionType.TRAIN)
+            name=ModelAction.TRAIN)
 
         parser.add_argument(
             "--learning-rate", "-l",

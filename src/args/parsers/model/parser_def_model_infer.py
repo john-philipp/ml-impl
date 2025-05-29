@@ -1,6 +1,6 @@
 from arg_parse.ifaces import IParserDef
 
-from src.args.parsers.enums import ModelActionType
+from src.args.parsers.enums import ModelAction
 
 
 class ParserDefModelInfer(IParserDef):
@@ -10,6 +10,6 @@ class ParserDefModelInfer(IParserDef):
         parser = parent_parser.add_parser(
             description="Run inference.",
             help="Check model output against (ideally unseen) input.",
-            name=ModelActionType.INFER)
+            name=ModelAction.INFER)
 
         return parser

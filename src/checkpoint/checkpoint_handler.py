@@ -2,7 +2,7 @@ import os
 from logging import getLogger
 from typing import Callable
 
-from src.args.parsers.enums import TensorHandlerType
+from src.args.parsers.enums import TensorHandler
 from src.config.config import Config
 from src.log.log_handler.log_handler import LogHandler
 
@@ -23,9 +23,9 @@ class CheckpointHandler:
 
     @staticmethod
     def get_ext(tensor_handler):
-        if tensor_handler == TensorHandlerType.TORCH:
+        if tensor_handler == TensorHandler.TORCH:
             return "pt"
-        elif tensor_handler == TensorHandlerType.NUMPY:
+        elif tensor_handler == TensorHandler.NUMPY:
             return "npy"
         raise ValueError(f"Unknown tensor handler: {tensor_handler}")
 
