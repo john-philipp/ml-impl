@@ -76,3 +76,15 @@ class ITensorHandler(ABC):
     @abstractmethod
     def d_relu(self, value):
         raise NotImplementedError()
+
+    @abstractmethod
+    def randn(self, shape):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def sqrt(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def as_tensor(self, value):
+        raise NotImplementedError()

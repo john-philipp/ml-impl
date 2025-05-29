@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from logging import getLogger
 
+from src.args.parsers.enums import Impl
 from src.config.config import Config
 from src.methods import load_image, resize_image
 from src.tensor.interfaces import ITensorHandler
@@ -92,6 +93,10 @@ class IImpl(ABC):
         self.x = self.tensor_handler.normalise(self.x)
 
     def save_checkpoint(self, path):
+        if self._config.impl == Impl.NN_RELU:
+            log.warning("Not implemented for ReLU")
+            return
+
         log.debug("Trying to save checkpoint...")
         log.info(f"Saving checkpoint: {path}")
         checkpoint_data = self.tensor_handler.concatenate(

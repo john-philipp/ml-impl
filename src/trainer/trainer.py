@@ -44,26 +44,27 @@ class Trainer:
             self._impl.normalise_data()
 
             self._stopwatch.start()
-            for epoch in range(self._epochs_trained, self._config.epochs + self._epochs_trained):
+            total_epochs = self._config.epochs + self._epochs_trained
+            for epoch in range(self._epochs_trained, total_epochs):
                 cost = self._impl.train_epoch()
                 new_data = True
                 if epoch % self._config.log_every == 0:
-                    log.info(f"Epoch {epoch} done after {self._stopwatch.lap():.3f}s: cost={cost:.3e}")
+                    log.info(f"Epoch {epoch + 1}/{total_epochs} done after {self._stopwatch.lap():.3f}s: cost={cost.item():.3e}")
                 if self._tensor_handler.is_nan(cost):
                     log.error(f"Cost is nan. Quitting. Try again with lower learning rate.")
                     new_data = False
                     break
                 elif epoch % self._config.checkpoint_epochs == 0:
                     self._checkpoint_handler.save(
-                        epoch, self._impl.image_shape, cost, self._impl.save_checkpoint)
+                        epoch, self._impl.image_shape, cost.item(), self._impl.save_checkpoint)
                     new_data = False
                 self._epochs_trained += 1
         except KeyboardInterrupt:
-            log.info(f"Epoch {epoch} done after {self._stopwatch.stop():.3f}s: cost={cost:.3e}")
+            log.info(f"Epoch {epoch} done after {self._stopwatch.stop():.3f}s: cost={cost.item():.3e}")
 
         if new_data and not self._tensor_handler.is_nan(cost):
             self._checkpoint_handler.save(
-                self._epochs_trained, self._impl.image_shape, cost, self._impl.save_checkpoint)
+                self._epochs_trained, self._impl.image_shape, cost.item(), self._impl.save_checkpoint)
 
     def infer(self):
         config = self._config

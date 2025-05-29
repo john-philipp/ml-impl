@@ -83,3 +83,12 @@ class _TorchTensorHandler(ITensorHandler):
 
     def d_relu(self, value):
         return (value > 0).float()
+
+    def randn(self, shape):
+        return torch.randn(shape, device=self._device)
+
+    def sqrt(self, value):
+        return torch.sqrt(value)
+
+    def as_tensor(self, value):
+        return torch.tensor(value, device=self._device)
