@@ -1,20 +1,25 @@
+import logging
+
 import torch
 from PIL.Image import Image
 from torchvision import transforms
 
+from src.config.config import Config
 from src.tensor.interfaces import ITensorHandler
-from src.tensor.tensor_handler_config import TensorHandlerConfig
+
+
+log = logging.getLogger(__name__)
 
 
 class _TorchTensorHandler(ITensorHandler):
 
-    def __init__(self, log, config: TensorHandlerConfig):
-        super().__init__(log, config)
+    def __init__(self, config: Config):
+        super().__init__(config)
 
         # Load CUDA.
         if self._config.use_cuda:
             if not torch.cuda.is_available():
-                self._log.error("CUDA unavailable but configured.")
+                log.error("CUDA unavailable but configured.")
                 raise ValueError()
             device = torch.device("cuda")
         else:
@@ -72,3 +77,18 @@ class _TorchTensorHandler(ITensorHandler):
 
     def fill(self, array, value):
         array.fill_(value)
+
+    def relu(self, value):
+        return torch.maximum(value, torch.tensor(0.0))
+
+    def d_relu(self, value):
+        return (value > 0).float()
+
+    def randn(self, shape):
+        return torch.randn(shape, device=self._device)
+
+    def sqrt(self, value):
+        return torch.sqrt(value)
+
+    def as_tensor(self, value):
+        return torch.tensor(value, device=self._device)

@@ -2,7 +2,8 @@ import os
 from logging import getLogger
 from typing import Callable
 
-from src.args.parsers.enums import TensorHandlerType
+from src.args.parsers.enums import TensorHandler
+from src.config.config import Config
 from src.log.log_handler.log_handler import LogHandler
 
 
@@ -13,17 +14,18 @@ CHECKPOINTS_REL_DIR = "checkpoints"
 
 
 class CheckpointHandler:
-    def __init__(self, log_handler: LogHandler, tensor_handler: TensorHandlerType):
-        self.ext = self.get_ext(tensor_handler)
+    def __init__(self, config: Config, log_handler: LogHandler):
+        self._config = config
+        self.ext = self.get_ext(config.tensor_handler)
         self.base_dir = os.path.join(log_handler.curr_log_dir, CHECKPOINTS_REL_DIR)
         os.makedirs(self.base_dir, exist_ok=True)
         self.prev_log_dirs = log_handler.prev_log_dirs
 
     @staticmethod
     def get_ext(tensor_handler):
-        if tensor_handler == TensorHandlerType.TORCH:
+        if tensor_handler == TensorHandler.TORCH:
             return "pt"
-        elif tensor_handler == TensorHandlerType.NUMPY:
+        elif tensor_handler == TensorHandler.NUMPY:
             return "npy"
         raise ValueError(f"Unknown tensor handler: {tensor_handler}")
 

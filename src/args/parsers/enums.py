@@ -7,25 +7,30 @@ class IEnum(IBaseEnum):
         return {x: y for x, y in cls.__dict__.items() if not x.startswith("_") and not isinstance(y, classmethod)}
 
 
-class MetaType(IEnum):
+class Meta(IEnum):
     ACTION = "action"
     MODE = "mode"
 
 
-class ModeType(IEnum):
+class Mode(IEnum):
     MODEL = "model"
 
 
-class ModelActionType(IEnum):
+class ModelAction(IEnum):
     TRAIN = "train"
     INFER = "infer"
 
 
-class TensorHandlerType(IEnum):
+class TensorHandler(IEnum):
     TORCH = "torch"
     NUMPY = "numpy"
 
 
-class DeviceType(IEnum):
+class Device(IEnum):
     CUDA = "cuda"
     CPU = "cpu"
+
+
+class Impl(IEnum):
+    LOG_REG = "log-reg"
+    NN_RELU = "nn-relu"
