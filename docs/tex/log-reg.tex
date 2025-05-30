@@ -1,0 +1,168 @@
+%\documentclass[a4paper]{article}
+%\usepackage[margin=2cm,paperheight=700mm]{geometry}  % 2cm margin on all sides
+\documentclass[varwidth,border=2cm]{standalone}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\begin{document}
+
+\section{Derivation: Logistic regression using gradient descent}
+\subsection{Single sample}
+We'll implement a simple logistic regression using gradient descent to train a simple model. Specifically, we define our loss across an individual sample as $L=L(\hat{y},y) \in \mathbb{R}$. In gradient descent, we're looking to minimise our loss across each training sample $\bm x\in\mathbb{R}^{n}$, where $n$ is the dimension of each data sample and $m$ is the overall number of samples to be trained on. We'll ignore $m$ for now and only look at a single sample.
+
+The output of our model will be $(\bm w,b)$ initialised at $(\bm 0, 0)$. These are our weights $\bm w\in\mathbb{R}^n$ and bias $b\in\mathbb{R}$. We start with the logit $z=z(\bm w,\bm x,b) \in \mathbb{R}$ as a linear relationship:
+
+\begin{equation}
+z=\bm w ^T\bm x + b \in \mathbb{R} \nonumber
+\end{equation}
+
+We'll use $y \in \{0,1\}$ (binary classification) to denote our truth value and $\hat{y} = a \in \mathbb{R}$ as our prediction. Here $\hat y = a = P(y=1|\bm x) \in (0, 1)$. That is, the probability of $y = 1$ given sample $\bm x$. Our activation function is the sigmoid $\sigma=\sigma(z)$. The sigmoid is defined as
+
+\begin{equation}
+\sigma(z) = \frac{1}{1 + e^{-z}} \in \mathbb{R} \nonumber
+\end{equation}
+
+Classically, we define the binary cross-entropy loss $L$ as
+
+\begin{equation}
+L(\hat y, y) = -\left(y \cdot \log(\hat y) + (1-y) \cdot \log(1-\hat y)\right) \nonumber
+\end{equation}
+
+As a consequence, if $y=1$ predictions $\hat y$ far from $1$ are penalised. Similarly, for $y=0$ with $\hat y$ close to $1$. Overall, what we're trying to do is to connect $(\bm w, b)$ to our loss plane. And find local minima on that plane using the gradient descent method.
+
+Specifically, this means we iterate
+\begin{align}
+\bm w_{n+1} &= \bm w_n - \alpha \frac{\partial L}{\partial \bm w} \\
+b_{n+1} &= b_n - \alpha \frac{\partial L}{\partial b} \nonumber
+\end{align}
+
+where $n$ denotes the current epoch starting from $(\bm w_0, b_0) = (\bm 0, 0)$ and $\alpha$ denotes the learning rate. We intend to arrive at an $(\bm w, b)$ such that $\frac{\partial L}{\partial (\bm w,b)} \rightarrow \bm 0$.
+
+\subsubsection{Forward pass}
+
+The forward pass in logistic regression is as follows:
+\begin{align}
+z &= \bm w ^T \bm x + b \\
+a &=\hat y = \sigma(z) \nonumber \\
+L &= L(\hat y=a, y) \nonumber
+\end{align}
+We arrive at our loss $L$.
+
+\subsubsection{Backward propagation}
+
+Backward propagation is our way to arrive at the derivatives $\frac{\partial L}{\partial (\bm w,b)}$ needed to iterate on $(\bm w,b)$. We use the chain rule:
+
+\begin{equation}
+\frac{\partial L}{\partial z} = \frac{\partial L}{\partial a} \frac{da}{dz} = \frac{\partial L}{\partial a} \frac{d\sigma}{dz} \nonumber
+\end{equation}
+
+Then
+\begin{align}
+\frac{d\sigma}{dz} &= \frac{d}{dz} \left( \frac{1}{1 + e^{-z}} \right) \nonumber \\
+ &= \frac{-e^{-z}(-1)}{(1 + e^{-z})^2} \nonumber \\
+ &= \frac{e^{-z}}{(1 + e^{-z})^2} \nonumber \\
+ &= \frac{1}{1 + e^{-z}} \cdot \left(\frac{1 + e^{-z}}{1 + e^{-z}} - \frac{1}{1 + e^{-z}}\right) \nonumber \\
+ &= \frac{1}{1 + e^{-z}} \cdot \left(1 - \frac{1}{1 + e^{-z}}\right) \nonumber \\
+ &= \sigma (1 - \sigma) \nonumber 
+\end{align}
+
+And since $a = \sigma(z)$, we have
+
+\begin{equation}
+\frac{d\sigma}{dz} = a(1 - a) \nonumber
+\end{equation}
+
+Therefore
+\begin{align}
+\frac{\partial L}{\partial z} = \frac{\partial L}{\partial a} \cdot a(1-a)
+\label{eq:dL_dz}
+\end{align}
+
+Further
+
+\begin{align}
+\frac{\partial L}{\partial a} &= - \frac{\partial}{\partial a} \left(y \cdot \log(a) + (1-y) \cdot \log(1-a)\right) \nonumber \\
+ &= - \left( \frac{y}{a} - \frac{1-y}{1-a} \right) \nonumber \\
+ &= -\frac{y}{a} + \frac{1-y}{1-a} \nonumber
+\end{align}
+
+Substituting back into (\ref{eq:dL_dz}), we get
+
+\begin{align}
+\frac{\partial L}{\partial z} &= \left( -\frac{y}{a} + \frac{1-y}{1-a} \right) \cdot a(1-a) \\
+ &= -(1-a)y + (1-y)a \nonumber \\
+ &= ay - y + a - y \nonumber \\
+ &= a - y \nonumber 
+\end{align}
+
+Letting $\delta = a -y$, we arrive at
+\begin{align}
+\frac{\partial L}{\partial \bm w} &= \frac{\partial L}{\partial z} \frac{\partial z}{\partial w} = \delta\cdot\bm x \\
+\frac{\partial L}{\partial b} &= \frac{\partial L}{\partial z} \frac{\partial z}{\partial b} = \delta \nonumber
+\end{align}
+Finally, this yields,
+\begin{align}
+\bm w_{n+1} &= \bm w_n - \alpha \cdot \delta \cdot \bm x \\
+b_{n+1} &= b_n - \alpha \cdot \delta \nonumber
+\end{align}
+
+\section{Vectorising}
+We can make the most of internal abstractions (e.g. in PyTorch) by using matrix notation instead of manually iterating across samples individually. For this we vectorise the problem. Specifically, letting $\bm x ^{(i)}$ denote sample $i \in \mathbb{N}$ where $1 \le i \le m$ and $m$ denotes the total number of training samples.
+
+Then
+
+
+$$
+\bm X = 
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{x}^{(1)} & \bm{x}^{(2)} & \cdots & \bm{x}^{(m)} \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+where $\bm X \in \mathbb{R}^{n \times m}$ which yields
+\begin{align}
+\bm Z &= \bm w ^T \bm X + b \cdot \bm 1 ^T \ \text{with} \ \bm 1 \in \mathbb{R}^m \\
+\bm A &= \sigma(\bm Z) \nonumber\\
+\frac{\partial L}{\partial \bm Z} &= \bm A - \bm Y \nonumber
+\end{align}
+
+Here $\bm w \in \mathbb{R}^{n}$, $\bm X \in \mathbb{R}^{n \times m}$, and $\bm A, \bm Y, \bm Z \in \mathbb{R}^{1 \times m}$. We define $\bm\Delta = \bm A - \bm Y$. In order to minimise loss across all $m$ samples, we seek to minimise the \textit{cost} $J$ across all samples. We define
+
+\begin{align}
+J = \frac{1}{m}\displaystyle \sum _{i=1} ^m L(a^{(i)}, y^{(i)})
+\end{align}
+
+For brevity, we let $\bm w ^{(i)}$ and $b^{(i)}$ denote the weights and bias found for sample $1 \le i \le m$. Then
+
+
+
+\begin{align}
+\frac{\partial L}{\partial \bm w ^{(i)}} &= \delta ^{(i)}\bm x^{(i)} \in \mathbb{R}^n \\
+\frac{\partial L}{\partial b^{(i)}} &= \delta ^{(i)} \in \mathbb{R} \nonumber
+\end{align}
+In terms of cost $J$ our derivatives become
+
+\begin{align}
+\frac{\partial J}{\partial \bm w} &= \frac{1}{m} \displaystyle \sum ^m _{i=1} \frac{\partial L}{\partial \bm w ^{(i)}} = \frac{1}{m} \displaystyle \sum ^m _{i=1} \delta^{(i)}\bm x^{(i)}\\
+\frac{\partial J}{\partial b} &= \frac{1}{m} \displaystyle \sum ^m _{i=1} \frac{\partial L}{\partial b} = \frac{1}{m} \displaystyle \sum ^m _{i=1} \delta^{(i)} \nonumber
+\end{align}
+
+But since $\bm\Delta = \bm A - \bm Y = \left[\delta^{(1)},\cdots , \delta^{(m)}\right] \in \mathbb{R}^m$ we can write these as
+
+\begin{align}
+\frac{\partial J}{\partial \bm w} &= \frac{1}{m} \bm\Delta \cdot \bm X^T \in \mathbb{R}^n\\
+\frac{\partial J}{\partial b} &= \frac{1}{m} \bm\Delta \cdot \bm 1^T \in \mathbb{R} \nonumber
+\end{align}
+
+Yielding our vectorised backward propagation
+
+\begin{align}
+\bm w_{n+1} &= \bm w_n - \frac{\alpha}{m}\bm\Delta \cdot \bm X^T \\
+b_{n+1} &= b_n - \frac{\alpha}{m} \bm\Delta \cdot \bm 1^T \nonumber
+\end{align}
+
+\end{document}
