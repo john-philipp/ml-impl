@@ -32,12 +32,5 @@ clean-logs-latest:
 # Should be viewable in both dark and bright mode in github.
 name = log-reg
 dpi = 300
-make tex-png:
-	rm -rf .tmp && \
-	mkdir -p .tmp docs/images && \
-	cd .tmp && \
-	latex ../docs/tex/$(name).tex && \
-	dvipng -D $(dpi) $(name).dvi -o $(name).png && \
-	convert $(name).png -bordercolor white -border 50x50 ../docs/images/$(name).png && \
-	cd .. && \
-	rm -rf .tmp
+tex-png:
+	scripts/make_tex_png.sh $(name) $(dpi)
