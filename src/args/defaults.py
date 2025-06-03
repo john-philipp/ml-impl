@@ -1,3 +1,6 @@
+from src.args.parsers.enums import Impl
+
+
 class Defaults:
     checkpoint_epochs = 10000
     learning_rate = 0.001
@@ -7,4 +10,5 @@ class Defaults:
     epochs = 100
     points = 64
     testing = False
+    impl = Impl.LOG_REG
 

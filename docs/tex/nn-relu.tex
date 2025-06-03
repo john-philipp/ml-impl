@@ -1,0 +1,225 @@
+%\documentclass[a4paper]{article}
+%\usepackage[margin=2cm,paperheight=700mm]{geometry}  % 2cm margin on all sides
+\documentclass[varwidth,border=2cm]{standalone}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\req}[1]{\overset{\eqref{#1}}{=}}
+\newcommand{\rreq}[2]{\overset{\eqref{#1}, \eqref{#2}}{=}}
+
+\begin{document}
+
+\section{Derivation: Hidden layer using ReLU}
+
+We'll derive the mathematics involved in adding a single hidden layer using the ReLU function. As in the logistic regression case, we let $n,m \in \mathbb{N}$ denote the sample dimension and total number of samples, respectively. $h \in \mathbb{N}$ will denote our hidden layer size. 
+
+\subsection{The ReLU function}
+We define the ReLU function as
+
+\[
+r(x) := \text{ReLU}(x) =
+\begin{cases}
+x & \text{if } x > 0 \\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+where $x \in \mathbb{R}$. By definition, $r$ is applied element-wise to any vector-valued input $\bm z \in \mathbb{R}^n$. We have
+\[
+r(\bm z) =
+r\left(
+\begin{bmatrix}
+z_1 \\
+z_2 \\
+\vdots
+\end{bmatrix}
+\right)
+=
+\begin{bmatrix}
+r(z_1) \\
+r(z_2) \\
+\vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+r_1 \\
+r_2 \\
+\vdots
+\end{bmatrix}
+= \bm r
+\]
+
+\subsubsection{ReLU derivative and Jacobian}
+Our derivative is defined as the Jacobian $J$ of $\bm r$, specifically
+\begin{equation}
+J_{ij} = \frac{\partial r_i}{\partial z_j} \in \mathbb{R}^{n \times n} \nonumber
+\end{equation}
+However, since $r_i = r_i(z_i)$ - that is $r_i$ only depends on $z_i$ - our Jacobian is diagonal.
+\[
+J_{ij} = \frac{\partial r_i}{\partial z_j} =
+\begin{cases}
+\frac{d r_i}{d z_i} & \text{if } i = j \\
+0 & \text{if } i \ne j
+\end{cases}
+\]
+And by definition of $r$ we have that
+\begin{equation}
+J_{ij}(\bm z) = 
+\begin{cases}
+1 & \text{if } i = j \text{ and } z_i > 0 \\
+0 & \text{otherwise }
+\end{cases}
+\end{equation}
+
+
+This implies that for $z, w \in \mathbb{R}^k$ we have
+\begin{equation}
+\left(\bm w \cdot \frac{\partial r(\bm z)}{\partial \bm z}\right)_i = w_j\frac{\partial r_j}{\partial z_i} = w_j J_{ji} = \begin{cases}
+w_i &\text{if } z_i > 0 \\
+0 &\text{otherwise}
+\end{cases}
+\label{w_dot_j}
+\end{equation}
+
+\subsubsection{Einstein notation}
+As a quick shorthand, in tensor calculus we drop the $\sum _{i=1} ^n$ for convenience and brevity whenever we're operating on repeating indices. That is, for two vectors $\bm x, \bm y$ in $n$ dimensional space, we write
+\[
+\bm x \cdot \bm y = \displaystyle \sum _{i=1} ^n x_i y_i = x_i y_i
+\]
+
+Similarly, involving square matrix $\bm Y$ in $n\times n$ dimensional space and with $(\cdots)_i$ denoting the $i^{\text{th}}$ element, we write
+\[
+(\bm x \cdot \bm Y)_i = \displaystyle \sum _{j=1} ^n x_jY_{ij} = x_jY_{ij}
+\]
+This is not the case for the Hadamard product, see below.
+
+\subsubsection{Hadamard product}
+We define the Hadamard product of two vectors $\bm a, \bm b$ in $n$ dimensional space as
+\[
+(\bm{a} \odot \bm{b})_i = a_i \cdot b_i, \quad 1 \le i \le n
+\]
+That is, we have
+\[
+\bm{a} \odot \bm{b} =
+\begin{bmatrix}
+a_1 \cdot b_1 \\
+a_2 \cdot b_2 \\
+\vdots \\
+a_n \cdot b_n
+\end{bmatrix}
+\]
+and we'll write
+\begin{equation}
+\left(\bm w \cdot \frac{\partial r(\bm z)}{\partial \bm z}\right)_i = w_i\frac{\partial r_i}{\partial z_j} = w_i J_{ij} = \left( \bm w \odot \bm j\right) _i
+\label{w_dot_drelu}
+\end{equation}
+where $\bm j \in \mathbb{R}^n$ denotes the vector along the diagonal of $\bm J$. More specifically,
+\( \bm j = [J_{11}, J_{22}, \dots, J_{nn}]^\top \in \mathbb{R}^n \) i.e., the diagonal of the Jacobian. We'll be relying on the Hadamard product when deriving our backward propagation equations. Defining it here avoids cluttering of definitions in the midst of what should be their application.
+
+\subsubsection{Kronecker delta}
+The Kronecker delta is defined as tensor $\delta_{ij}$ as below.
+
+\begin{equation}
+\delta_{ij} =
+\begin{cases}
+1 & \text{if } i = j \\
+0 & \text{otherwise }
+\end{cases}
+\label{kronecker_delta}
+\end{equation}
+
+It's used in Einstein notation based tensor calculations to - in effect - denote an identity operation of the given rank.
+
+\subsection{Single sample}
+
+We'll be reusing a number of results from the logistic-regression case, highlighting differences where necessary. Once again our activation function is defined as the sigmoid due to its properties specifically fitting the binary classification case (opposite predictions are penalised).
+
+One important difference - explained later - is that our initialisations for our weights and biases. We no longer can initialise at zero.
+
+\begin{equation}
+\sigma(z) = \frac{1}{1 + e^{-z}} \in \mathbb{R} \nonumber
+\end{equation}
+
+Once again, we define the binary cross-entropy loss $L$ as
+\begin{equation}
+L(\hat y, y) = -\left(y \cdot \log(\hat y) + (1-y) \cdot \log(1-\hat y)\right) \nonumber
+\end{equation}
+
+\subsubsection{Forward pass}
+
+We're extending the logistic-regression case by a single hidden layer based on the ReLU $r$ function defined above. Mathematically, for sample $(i)$, this is expressed as
+
+\begin{align}
+\label{forward_pass}
+\bm z_1 ^{(i)} &= \bm W_1 ^T \bm x ^{(i)} + \bm b_1 && \in \mathbb{R}^h \\
+\bm a_1 ^{(i)} &= r(\bm z_1 ^{(i)}) && \in \mathbb{R}^h \nonumber \\
+z_2 ^{(i)} &= \bm w_2 ^T \bm a_1 ^{(i)} + b_2 && \in \mathbb{R} \nonumber \\
+a_2 ^{(i)} &= \sigma(z_2 ^{(i)}) && \in \mathbb{R} \nonumber
+\end{align}
+
+where $h$ denotes our hidden layer size. $(\bm W_1, \bm b_1)$ and $(\bm w_2, b_2)$ denote the weights and bias of our hidden and output layer, respectively. The dimensions of our inputs are
+\begin{align}
+\bm x^{(i)} &\in \mathbb{R}^{n} \\
+(\bm W_1, \bm b_1) &\in (\mathbb{R}^{n \times h}, \mathbb{R}^h) \nonumber \\
+(\bm w_2, b_2) &\in (\mathbb{R}^{h}, \mathbb{R}) \nonumber
+\end{align}
+
+This is our forward pass with ReLU based hidden and sigmoid output layer.
+
+\subsubsection{Backward propagation}
+We're looking to iterate our weights and biases as
+\begin{align}
+\bm W_{1, N+1} &= \bm W_{1, N} - \alpha\frac{\partial L}{\partial \bm W_1}  \\
+\bm b_{1, N+1} &= \bm b_{1, N} - \alpha\frac{\partial L}{\partial \bm b_1} \nonumber \\
+\bm w_{2, N+1} &= \bm w_{2, N} - \alpha\frac{\partial L}{\partial \bm w_2} \nonumber \\
+    b_{2, N+1} &=     b_{2, N} - \alpha\frac{\partial L}{\partial     b_2} \nonumber
+\end{align}
+
+where $N \in \mathbb{N}$ denotes the epoch (iteration) and $\alpha$ our learning rate. From the logistic-regression case for our output layer, we note the derivative $\frac{\partial L}{\partial z_2^{(i)}}$ to be
+
+\begin{align}
+\frac{\partial L}{\partial z_2^{(i)}} &= (a_2 ^{(i)} - y)
+\label{dLdz2}
+\end{align}
+
+Using the chain rule (wlog we drop the sample $i$ superscript indicating a single sample for brevity). Instead we'll be using subscripts $i,j,k$ indicate tensor values. In the following $T_q,ijk$ indicates value at position $(i,j,k)$ in tensor $T_q$. That is, in the case of an existing subscript, we delimit between existing subscript and tensor coordinate using a comma.
+\begin{align}
+\left(\frac{\partial L}{\partial \bm W_1}\right)_{kl} &= \left( \frac{\partial L}{\partial z_2}\frac{\partial z_2}{\partial \bm a_1}\frac{\partial \bm a_1}{\partial \bm z_1}\frac{\partial \bm z_1}{\partial \bm W_1} \right)_{kl} \\
+ &= \frac{\partial L}{\partial z_2}\frac{\partial z_2}{\partial a_{1,i}} \pd{a_{1,i}}{z_{1,j}} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
+ & \req{dLdz2} (a_2 - y) w_{2, i} \pd{r(z_{1,i})}{z_{1,j}} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
+ &= (a_2 - y) w_{2, i} \pd{r_{1,i}}{z_{1,j}} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
+ &= (a_2 - y) w_{2, i} J_{1,ij} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
+ & \req{w_dot_drelu} (a_2 - y) (\bm w_2 \odot \bm j_1)_p \pd{z_{1,p}}{W_{1,kl}} \nonumber
+\end{align}
+
+Here $\bm r_1 = r(\bm z_1)$, $\bm J_1 = \bm J(\bm r_1)$, and $\bm j$ denotes the diagonal of our Jacobian $\bm J$, not to be confused with summation index $j$. In the last line we replace summation index $j$ with $p$ to avoid unnecessary ambiguity. We have
+
+\begin{align}
+\pd{z_{1,p}}{W_{1,kl}} &\req{forward_pass} \pd{}{W_{1,kl}} \left( \bm W^T_1 \bm x + \bm b_1\right)_p \\
+&= \pd{}{W_{1,kl}} \left( \bm W^T_1 \bm x + \bm b_1\right)_p \nonumber \\
+&= \pd{}{W_{1,kl}} \left( W^T_{1,jp} x_j \right) \nonumber \\
+&= \pd{}{W_{1,kl}} \left( W_{1,pj} x_j \right) \nonumber \\
+&= \pd{W_{1,pj}}{W_{1,kl}} x_j \nonumber \\
+& \req{kronecker_delta} \delta_{pk} \delta_{jl} x_j \nonumber \\
+&= \delta_{pk} x_l \nonumber
+\end{align}
+
+Consequently, we have
+\begin{align}
+\left(\pd{L}{\bm W_1}\right)_{kl} &= (a_2 - y) (\bm w_2 \odot \bm j_1) _p \delta _{pk}x_l \\
+&= (a_2 - y) (\bm w_2 \odot \bm j_1) _k x_l \nonumber \\
+&= 
+\begin{cases}
+(a_2 - y) w_{2,k} x_l, \quad \text{if } z_{1,k} > 0 \\
+0,\quad\text{otherwise}
+\end{cases} \nonumber
+\end{align}
+
+equivalent to
+\begin{equation}
+\pd{L}{\bm W_1} = (a_2 - y) \cdot [(\bm w_2 \odot \bm j_1)\bm x^T] \nonumber
+\end{equation}
+
+\end{document}

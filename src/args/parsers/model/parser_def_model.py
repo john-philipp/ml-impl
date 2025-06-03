@@ -1,7 +1,7 @@
 from arg_parse.ifaces import IParserDef
 
 from src.args.defaults import Defaults
-from src.args.parsers.enums import ModeType, MetaType, TensorHandlerType, DeviceType
+from src.args.parsers.enums import Mode, Meta, TensorHandler, Device, Impl
 from src.args.parsers.model.parser_def_model_infer import ParserDefModelInfer
 from src.args.parsers.model.parser_def_model_train import ParserDefModelTrain
 
@@ -17,11 +17,11 @@ class ParserDefModel(IParserDef):
 
         parser = parent_parser.add_parser(
             description="Model related functionality.",
-            name=ModeType.MODEL,
+            name=Mode.MODEL,
             help="Model related functionality.")
 
         action_parser = parser.add_subparsers(
-            dest=MetaType.ACTION,
+            dest=Meta.ACTION,
             help="Model related action to take.",
             required=True)
 
@@ -30,14 +30,26 @@ class ParserDefModel(IParserDef):
             sub_parser.add_argument(
                 "--tensor-handler", "-t",
                 help="Which tensor handler to use (CUDA requires torch).",
-                choices=TensorHandlerType.choices(),
-                default=TensorHandlerType.TORCH)
+                choices=TensorHandler.choices(),
+                default=TensorHandler.TORCH)
+
+            sub_parser.add_argument(
+                "--impl", "-i",
+                help="Use this implementation.",
+                choices=Impl.choices(),
+                default=Impl.LOG_REG)
+
+            sub_parser.add_argument(
+                "--hidden-layer-size", "-g",
+                help="Hidden-layer size.",
+                default=64,
+                type=int)
 
             sub_parser.add_argument(
                 "--device", "-d",
                 help="Run on CPU or CUDA (CUDA requires torch)",
-                choices=DeviceType.choices(),
-                default=DeviceType.CUDA)
+                choices=Device.choices(),
+                default=Device.CUDA)
 
             sub_parser.add_argument(
                 "--batch-offset", "-o",

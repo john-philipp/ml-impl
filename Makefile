@@ -30,13 +30,8 @@ clean-logs-latest:
 
 # Build a PNG ready for readme inclusion complete with border.
 # Should be viewable in both dark and bright mode in github.
+# Default dpi of 120 seems to display well on github.
 name = log-reg
-make tex-png:
-	rm -rf .tmp && \
-	mkdir -p .tmp docs/images && \
-	cd .tmp && \
-	latex ../docs/tex/$(name).tex && \
-	dvipng $(name).dvi -o $(name).png && \
-	convert $(name).png -bordercolor white -border 50x50 ../docs/images/$(name).png && \
-	cd .. && \
-	rm -rf .tmp
+dpi = 120
+tex-png:
+	scripts/make_tex_png.sh $(name) $(dpi)

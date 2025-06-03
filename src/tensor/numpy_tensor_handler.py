@@ -49,3 +49,9 @@ class _NumpyTensorHandler(ITensorHandler):
 
     def fill(self, array, value):
         array.fill(value)
+
+    def relu(self, value):
+        return np.maximum(0, value)
+
+    def d_relu(self, value):
+        return (value > 0).astype(float)
