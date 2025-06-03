@@ -185,7 +185,7 @@ where $N \in \mathbb{N}$ denotes the epoch (iteration) and $\alpha$ our learning
 \end{align}
 
 Using the chain rule (wlog we drop the sample $i$ superscript indicating a single sample for brevity). Instead we'll be using subscripts $i,j,k$ indicate tensor values. In the following $T_q,ijk$ indicates value at position $(i,j,k)$ in tensor $T_q$. That is, in the case of an existing subscript, we delimit between existing subscript and tensor coordinate using a comma.
-\begin{align}
+\begin{align}\label{derivation_dLdW1}
 \left(\frac{\partial L}{\partial \bm W_1}\right)_{kl} &= \left( \frac{\partial L}{\partial z_2}\frac{\partial z_2}{\partial \bm a_1}\frac{\partial \bm a_1}{\partial \bm z_1}\frac{\partial \bm z_1}{\partial \bm W_1} \right)_{kl} \\
  &= \frac{\partial L}{\partial z_2}\frac{\partial z_2}{\partial a_{1,i}} \pd{a_{1,i}}{z_{1,j}} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
  & \req{dLdz2} (a_2 - y) w_{2, i} \pd{r(z_{1,i})}{z_{1,j}} \pd{z_{1,j}}{W_{1,kl}} \nonumber \\
@@ -218,8 +218,53 @@ Consequently, we have
 \end{align}
 
 equivalent to
-\begin{equation}
-\pd{L}{\bm W_1} = (a_2 - y) \cdot [(\bm w_2 \odot \bm j_1)\bm x^T] \nonumber
-\end{equation}
+\begin{align}\label{dLdW1}
+\pd{L}{\bm W_1} &= (a_2 - y) \cdot [(\bm w_2 \odot \bm j_1)\bm x^T] \\
+                &= \bm \psi_1 \bm x^T \nonumber
+\end{align}
+
+where
+\begin{align}
+\bm \psi_1 &= (a_2 - y) \cdot (\bm w_2 \odot \bm j_1)
+\label{psi}
+\end{align}
+
+Analogously,
+\begin{align}
+\frac{\partial L}{\partial \bm b_1} &= \frac{\partial L}{\partial z_2}\frac{\partial z_2}{\partial \bm a_1}\frac{\partial \bm a_1}{\partial \bm z_1}\frac{\partial \bm z_1}{\partial \bm b_1} \\
+ &\rreq{derivation_dLdW1}{psi} \bm \psi_1 \pd{\bm z_1}{\bm b_1} \nonumber \\
+ &\req{forward_pass} \bm \psi_1 \nonumber
+\end{align}
+
+Looking at our output layer, we find
+\begin{align}
+\left( \pd{L}{\bm w_2} \right)_i &= \left( \pd{L}{z_2} \pd{z_2}{\bm w_2} \right)_i \\
+ &= \pd{L}{z_2} \pd{z_2}{w_{2,i}} \nonumber \\
+ & \req{dLdz2} (a_2 - y) \pd{z_2}{w_{2,i}} \nonumber \\
+ & \req{forward_pass} (a_2 - y) \pd{}{w_{2,i}} \left( \bm w_2^T \bm a_1 + b_2 \right) \nonumber \\
+ &= (a_2 - y) \pd{}{w_{2,i}} \left( \bm w_{2,j} a_{1,j} \right) \nonumber \\
+ &= (a_2 - y) \delta_{ij} a_{1,j} \nonumber \\
+ &= (a_2 - y) a_{1,i} \nonumber
+\end{align}
+
+yielding
+
+\begin{align}\label{dLdw2}
+\pd{L}{\bm w_2} &= (a_2 - y) \bm a_1
+\end{align}
+
+And again, very similarly
+
+\begin{align}
+\pd{L}{b_2} &= \pd{L}{z_2} \pd{z_2}{b_2} = (a_2 - y)
+\end{align}
+
+We define $\psi_2 = (a_2 - y)$ and arrive at our back propagation equations for a single sample
+\begin{align}
+\bm W_{1, N+1} &= \bm W_{1, N} - \alpha \bm \psi_1 \bm x^T  \\
+\bm b_{1, N+1} &= \bm b_{1, N} - \alpha \bm \psi_1 \nonumber \\
+\bm w_{2, N+1} &= \bm w_{2, N} - \alpha \psi_2 \bm a_1 \nonumber \\
+    b_{2, N+1} &=     b_{2, N} - \alpha \psi_2 \nonumber
+\end{align}
 
 \end{document}

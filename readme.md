@@ -14,4 +14,4 @@ As a basic example I've implemented a logistic regression scheme using a sigmoid
 ### Hidden layer using ReLU
 We extend the logistic regression case using a hidden layer based on the ReLU function.
 
-![Full derivation for ReLU hidden layer.](docs/images/nn-relu-20250603_132727.png)
+![Full derivation for ReLU hidden layer.](docs/images/nn-relu-20250603_154344.png)
