@@ -267,4 +267,120 @@ We define $\psi_2 = (a_2 - y)$ and arrive at our back propagation equations for 
     b_{2, N+1} &=     b_{2, N} - \alpha \psi_2 \nonumber
 \end{align}
 
+\section{Vectorising}
+
+We can make the most of internal abstractions (e.g. in PyTorch) by using matrix notation instead of manually iterating across samples individually. For this we vectorise the problem. Specifically, letting $\bm x ^{(i)}$ denote sample $i \in \mathbb{N}$ where $1 \le i \le m$ and $m$ denotes the total number of training samples.
+
+Then
+$$
+\bm X = 
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{x}^{(1)} & \bm{x}^{(2)} & \cdots & \bm{x}^{(m)} \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+$$
+\bm B_1 =  
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{b}_1 & \bm{b}_1 & \cdots & \bm{b}_1 \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+
+where $\bm X \in \mathbb{R}^{n \times m}$, $\bm W_1 \in \mathbb{R}^{n \times h}$, $\bm w_2 \in \mathbb{R}^{h}$, and $\bm B_1 \in \mathbb{R}^{h\times m}$. As a slight note, $\bm B_1$ is a columnwise broadcast of $\bm b_1$. In code, this is often implicit. That is, we don't have to explicitly construct it and can get away with adding $b_1$ to a matrix. But in the interest of mathematical rigour, we make it explicit here. We have
+\begin{align}
+\bm Z_1 &= \bm W_1^T \bm X + \bm B_1 \\
+\bm A_1 &= r(\bm Z_1) \nonumber\\
+\bm z_2 &= \bm w_2 ^T \bm A_1 + b_2\bm 1_m \nonumber \\
+\bm a_2 &= \sigma(\bm z_2) \nonumber
+\end{align}
+
+with
+$$
+\bm Z_1 =  
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{z}_1^{(1)} & \bm{z}_1^{(2)} & \cdots & \bm{z}_1^{(m)} \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+
+Here $\bm w_2 \in \mathbb{R}^{h}$, $\bm Z_1, \bm A_1 \in \mathbb{R}^{h \times m}$, $\bm z_2, \bm a_2 \in \mathbb{R}^m$, $b_2 \in \mathbb{R}$, and $\bm 1_m \in \mathbb{R}^m$. In order to minimise loss across all $m$ samples, we seek to minimise the \textit{cost} $J$ across all samples. We define
+
+\begin{align}
+J = \frac{1}{m}\displaystyle \sum _{i=1} ^m L(a_{2}^{(i)}, y^{(i)})
+\end{align}
+
+Then
+\begin{align}
+\pd{J}{\bm W_1} &= \frac{1}{m} \displaystyle \sum _{i=1}^m \pd{}{\bm W_1}L(a_{2}^{(i)}, y^{(i)}) \\
+ &= \frac{1}{m} \displaystyle \sum _{i=1}^m (a_2^{(i)} - y^{(i)})(\bm w_2 \odot \bm j_1 ^{(i)}) (\bm x^{(i)})^T \nonumber \\
+ &= \frac{1}{m} \bm X ((\bm w_2 \odot \bm J_1)\operatorname{ diag}(\bm a_2 - \bm y))^T \nonumber
+\end{align}
+where $\operatorname{diag}(\bm a_2 - \bm y) \in \mathbb{R}^{m \times m}$ with entries $a_2^{(i)} - y^{(i)}$ along its diagonal.
+
+For $\pd{J}{\bm b_1}$ we have
+\begin{align}
+\pd{J}{\bm b_1} &= \frac{1}{m} \displaystyle \sum _{i=1}^m \pd{}{\bm b_1}L(a_{2}^{(i)}, y^{(i)}) \\
+ &= \frac{1}{m} \displaystyle \sum _{i=1}^m (a_2^{(i)} - y^{(i)})(\bm w_2 \odot \bm j_1 ^{(i)})\nonumber
+\end{align}
+
+where $\bm j_1^{(i)}$ denotes the vectorised diagonal of the Jacobian $\bm J^{(i)}_{pq} = \pd{r\left(z_{1,p}^{(i)}\right)}{z^{(i)}_{1,q}}$. We define
+$$
+\bm J_1 =  
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{j}_1^{(1)} & \bm{j}_1^{(2)} & \cdots & \bm{j}_1^{(m)} \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+
+and can now write
+\begin{align}
+\pd{J}{\bm b_1} = \frac{1}{m} (\bm a_2 - \bm y)(\bm w_2 \odot \bm J_1)^T
+\end{align}
+
+For $\pd{J}{\bm w_2}$ we have
+\begin{align}
+\pd{J}{\bm w_2} &= \frac{1}{m} \displaystyle \sum _{i=1}^m \pd{}{\bm w_2}L(a_{2}^{(i)}, y^{(i)}) \\
+ &= \frac{1}{m} \displaystyle \sum _{i=1}^m (a_2^{(i)} - y^{(i)})\bm a_1^{(i)} \nonumber \\
+ &= \frac{1}{m} (\bm a_2 - \bm y)\bm A_1^T \nonumber
+\end{align}
+where
+$$
+\bm A_1 =  
+\left[
+\begin{array}{cccc}
+| & | &        & | \\
+\bm{a}_1^{(1)} & \bm{a}_1^{(2)} & \cdots & \bm{a}_1^{(m)} \\
+| & | &        & | \\
+\end{array}
+\right]
+$$
+
+And for $\pd{J}{b_2}$ we have
+\begin{align}
+\pd{J}{b_2} &= \frac{1}{m} \displaystyle \sum _{i=1}^m \pd{}{b_2}L(a_{2}^{(i)}, y^{(i)}) \\
+ &= \frac{1}{m} \displaystyle \sum _{i=1}^m (a_2^{(i)} - y^{(i)}) \nonumber \\
+ &= \frac{1}{m} (\bm a_2 - \bm y)\cdot\bm 1_m^T \nonumber
+\end{align}
+
+Finally, this yields our vectorised back propagation equations as
+\begin{align}
+\pd{J}{\bm W_1} &= \frac{1}{m} \bm X \left( (\bm w_2 \odot \bm J_1) \, \mathrm{diag}(\bm a_2 - \bm y) \right)^T \\
+\pd{J}{\bm b_1} &= \frac{1}{m} (\bm a_2 - \bm y)(\bm w_2 \odot \bm J_1)^T \nonumber \\
+\pd{J}{\bm w_2} &= \frac{1}{m} (\bm a_2 - \bm y)\bm A_1^T \nonumber \\
+\pd{J}{b_2}     &= \frac{1}{m} (\bm a_2 - \bm y)\cdot\bm 1_m^T \nonumber
+\end{align}
+
 \end{document}
