@@ -81,27 +81,6 @@ class _NnReluImpl(IImpl):
         self.j = j
         assert j.shape == (1,)
 
-    def _d2(self):
-        a2 = self.a2
-        y = self.y
-        d2 = a2 - y
-        self.d2 = d2
-        assert d2.shape == (1, self.m)
-
-    def _dj_dw2(self):
-        a1 = self.a1
-        d2 = self.d2
-        dj_dw2 = self.tensor_handler.multiply(a1, d2.T).T
-        self.dj_dw2 = dj_dw2
-        assert dj_dw2.shape == (1, self.h)
-
-    def _dj_db2(self):
-        d2 = self.d2
-        m = self.m
-        _dj_db2 = (1 / m) * self.tensor_handler.sum(d2)
-        self.dj_db2 = _dj_db2
-        assert _dj_db2.shape == ()
-
     def _d1(self):
         d2 = self.d2
         w2 = self.w2
@@ -129,6 +108,27 @@ class _NnReluImpl(IImpl):
         self.dj_db1 = dj_db1
         assert dj_db1.shape == ()
 
+    def _d2(self):
+        a2 = self.a2
+        y = self.y
+        d2 = a2 - y
+        self.d2 = d2
+        assert d2.shape == (1, self.m)
+
+    def _dj_dw2(self):
+        a1 = self.a1
+        d2 = self.d2
+        dj_dw2 = self.tensor_handler.multiply(a1, d2.T).T
+        self.dj_dw2 = dj_dw2
+        assert dj_dw2.shape == (1, self.h)
+
+    def _dj_db2(self):
+        d2 = self.d2
+        m = self.m
+        _dj_db2 = (1 / m) * self.tensor_handler.sum(d2)
+        self.dj_db2 = _dj_db2
+        assert _dj_db2.shape == ()
+
     def _w1(self):
         w1 = self.w1
         alpha = self.alpha
@@ -136,14 +136,6 @@ class _NnReluImpl(IImpl):
         w1 -= alpha * dj_dw1
         self.w1 = w1
         assert w1.shape == (self.n, self.h)
-
-    def _w2(self):
-        w2 = self.w2
-        alpha = self.alpha
-        dj_dw2 = self.dj_dw2
-        w2 -= alpha * dj_dw2
-        self.w2 = w2
-        assert w2.shape == (1, self.h)
 
     def _b1(self):
         b1 = self.b1
@@ -161,6 +153,14 @@ class _NnReluImpl(IImpl):
         self.b2 = b2
         assert b2.shape == (1, 1)
 
+    def _w2(self):
+        w2 = self.w2
+        alpha = self.alpha
+        dj_dw2 = self.dj_dw2
+        w2 -= alpha * dj_dw2
+        self.w2 = w2
+        assert w2.shape == (1, self.h)
+
     def train_epoch(self):
 
         # Forward propagation.
@@ -173,15 +173,17 @@ class _NnReluImpl(IImpl):
         self._j()
 
         # Backward propagation.
-        self._d2()
-        self._dj_dw2()
-        self._dj_db2()
-
         self._d1()
         self._dj_dw1()
         self._dj_db1()
 
+        self._d2()
+        self._dj_dw2()
+        self._dj_db2()
+
         # Update weights and bias.
+        # Only do this at the end to not
+        # cross-contaminate within an epoch.
         self._w1()
         self._b1()
         self._w2()
