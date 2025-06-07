@@ -55,3 +55,6 @@ class _NumpyTensorHandler(ITensorHandler):
 
     def d_relu(self, value):
         return (value > 0).astype(float)
+
+    def diag(self, value):
+        return np.diag(value)

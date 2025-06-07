@@ -39,7 +39,7 @@ class Trainer:
 
             log.info("Training...")
             for label, dataset_path in enumerate(self._config.datasets):
-                self._impl.load_data(dataset_path, label)
+                self._impl.load_data(os.path.join(dataset_path, "train"), label)
             self._impl.accumulate_data()
             self._impl.normalise_data()
 
@@ -75,12 +75,12 @@ class Trainer:
         log.info("Inferring...")
         total_count, total_passes = 0, 0
         for expected_label, dataset_path in enumerate(config.datasets):
-            files = os.listdir(dataset_path)
+            files = os.listdir(os.path.join(dataset_path, "test"))
             files.sort()
 
             count, passes = 0, 0
-            for count, file in enumerate(files[config.batch_offset: config.batch_offset + config.batch_size]):
-                inferred = self._impl.infer(os.path.join(dataset_path, file), expected_label).item()
+            for count, file in enumerate(files):
+                inferred = self._impl.infer(os.path.join(dataset_path, "test", file), expected_label).item()
                 inferred_label = 0 if inferred < 0.5 else 1
                 as_expected = inferred_label == expected_label
                 relation = "==" if as_expected else "!="

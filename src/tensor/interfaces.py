@@ -74,6 +74,10 @@ class ITensorHandler(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def diag(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
     def d_relu(self, value):
         raise NotImplementedError()
 

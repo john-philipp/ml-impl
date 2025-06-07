@@ -68,7 +68,7 @@ class IImpl(ABC):
         assert self.m == sum([x.shape[1] for _, x in self.datas]), "Failed consistency check!"
 
         # Note, without batching this will eventually incur out of memory errors.
-        self.x = self.tensor_handler.zeros((self.dimensions, self.m))
+        self._X = self.tensor_handler.zeros((self.dimensions, self.m))
         self.y = self.tensor_handler.zeros(self.m)
 
         offset = 0
@@ -78,19 +78,19 @@ class IImpl(ABC):
 
                 if self._config.testing:
                     if label == 0:
-                        self.tensor_handler.fill(self.x[:, offset + j], 0)
+                        self.tensor_handler.fill(self._X[:, offset + j], 0)
                     elif label == 1:
-                        self.tensor_handler.fill(self.x[:, offset + j], 1)
+                        self.tensor_handler.fill(self._X[:, offset + j], 1)
                     else:
                         raise ValueError()
                 else:
-                    self.x[:, offset + j] = x[:, j]
+                    self._X[:, offset + j] = x[:, j]
 
                 self.y[offset + j] = label
             offset += m
 
     def normalise_data(self):
-        self.x = self.tensor_handler.normalise(self.x)
+        self._X = self.tensor_handler.normalise(self._X)
 
     def save_checkpoint(self, path):
         if self._config.impl == Impl.NN_RELU:
