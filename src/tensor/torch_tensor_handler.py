@@ -92,3 +92,6 @@ class _TorchTensorHandler(ITensorHandler):
 
     def as_tensor(self, value):
         return torch.tensor(value, device=self._device)
+
+    def diag(self, value):
+        return torch.diag(value)

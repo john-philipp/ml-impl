@@ -36,8 +36,8 @@ def parse_args(*args):
     base_parser = argparse.ArgumentParser(
         prog="logistic-regression",
         description="Simple logistic regression based on gradient descent.")
-    base_parser.add_argument("-f", "--from-file", default=None, help="Args from file.")
-    base_parser.add_argument("-e", "--from-env", default=None, help="From env prefix.")
+    base_parser.add_argument("--from-file", default=None, help="Args from file.")
+    base_parser.add_argument("--from-env", default=None, help="From env prefix.")
 
     base_args = base_parser.parse_known_args(args)
     top_level_args = base_args[0]

@@ -34,8 +34,8 @@ if __name__ == '__main__':
                 trainer = Trainer(config, log_handler)
                 trainer.train()
 
-            elif args_.action == ModelAction.INFER:
-                trainer = Trainer(config, log_handler)
+            # elif args_.action == ModelAction.INFER:
+            #     trainer = Trainer(config, log_handler)
                 trainer.infer()
 
             else:
