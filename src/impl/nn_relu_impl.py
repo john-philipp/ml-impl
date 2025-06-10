@@ -10,16 +10,21 @@ log = getLogger(__name__)
 
 class _NnReluImpl(IImpl):
 
+    class State:
+        def __init__(self, W1, b1, w2, b2):
+            self.W1 = W1
+            self.b1 = b1
+            self.w2 = w2
+            self.b2 = b2
+
     def __init__(self, config: Config, tensor_handler: ITensorHandler):
         super().__init__(config, tensor_handler)
-        self._th = self.tensor_handler
+        self._th = self._th
 
-        self.m = 0  # Sample count.
         self.n = self.dimensions  # Pixels * 3 (rbg).
         self.h = config.hidden_layer_size  # Hidden layer size.
 
         # He (Kaiming) initialisation. Avoids zero learning due to symmetry.
-        self._X = None
         self._W1 = self._th.randn((self.n, self.h)) * self._th.sqrt(self._th.as_tensor(2 / self.n))
         self._b1 = self._th.zeros((self.h, 1))
         self._w2 = self._th.randn((self.h, 1)) * self._th.sqrt(self._th.as_tensor(2 / self.h))
@@ -70,7 +75,7 @@ class _NnReluImpl(IImpl):
 
     def _update_j(self):
         _a2 = self._a2
-        _y = self.y
+        _y = self._y
         _m = self.m
 
         _log_a2 = self._th.log(_a2)
@@ -78,13 +83,13 @@ class _NnReluImpl(IImpl):
         _log_1_a2 = self._th.log(1 - _a2)
         _1_y_log_1_a2_T = self._th.multiply(1 - _y, _log_1_a2.T)
 
-        _j = (-1 / _m) * (_y_log_a2_T + _1_y_log_1_a2_T.T)
+        _j = (-1 / _m) * (_y_log_a2_T + _1_y_log_1_a2_T)
         self._j = _j
         assert _j.shape == (1,)
 
     def _update_d2(self):
         _a2 = self._a2
-        _y = self.y
+        _y = self._y
         _d2 = _a2 - _y
         self._d2 = _d2
         assert _d2.shape == (1, self.m)
@@ -155,7 +160,7 @@ class _NnReluImpl(IImpl):
         _dj_db2 = self._dj_db2
         _b2 -= _alpha * _dj_db2
         self._b2 = _b2
-        assert _b2.shape == (1, 1)
+        assert _b2.shape == (1, 1), f"Shape was: {_b2.shape}"
 
     def _update_w2(self):
         _w2 = self._w2
@@ -214,3 +219,17 @@ class _NnReluImpl(IImpl):
         self._update_a2()
 
         return self._a2
+
+    def get_checkpoint_suffix(self):
+        base_suffix = super().get_checkpoint_suffix()
+        h_points = self._config.hidden_layer_size
+        return f"{base_suffix}_h{h_points}"
+
+    def get_state(self):
+        return _NnReluImpl.State(self._W1, self._b1, self._w2, self._b2)
+
+    def from_state(self, state: State):
+        self._W1 = state.W1
+        self._b1 = state.b1
+        self._w2 = state.w2
+        self._b2 = state.b2

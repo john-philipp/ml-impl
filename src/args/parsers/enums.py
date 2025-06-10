@@ -14,6 +14,11 @@ class Meta(IEnum):
 
 class Mode(IEnum):
     MODEL = "model"
+    MISC = "misc"
+
+
+class MiscAction(IEnum):
+    MAKE_DOCS = "make-docs"
 
 
 class ModelAction(IEnum):

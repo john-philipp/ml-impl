@@ -5,6 +5,7 @@ from arg_parse.arg_parser import ArgParser
 from arg_parse.ifaces import Args
 from arg_parse.parser_def_main import ParserDefMain
 
+from src.args.parsers.misc.parser_def_misc import ParserDefMisc
 from src.args.parsers.model.parser_def_model import ParserDefModel
 
 
@@ -33,19 +34,30 @@ class AppArgs(Args):
 
 
 def parse_args(*args):
+    help_ = False
+    if any(x in ["-h", "--help"] for x in args):
+        help_ = True
+
     base_parser = argparse.ArgumentParser(
         prog="logistic-regression",
         description="Simple logistic regression based on gradient descent.")
     base_parser.add_argument("--from-file", default=None, help="Args from file.")
     base_parser.add_argument("--from-env", default=None, help="From env prefix.")
 
+    def register_args():
+        parser_def = ParserDefMain()
+        parser_def.register_sub_parser(ParserDefModel())
+        parser_def.register_sub_parser(ParserDefMisc())
+        parser_def.register_args(base_parser)
+
+    if help_:
+        register_args()
+
     base_args = base_parser.parse_known_args(args)
     top_level_args = base_args[0]
     remaining_args = base_args[1]
 
-    parser_def = ParserDefMain()
-    parser_def.register_sub_parser(ParserDefModel())
-    parser_def.register_args(base_parser)
+    register_args()
 
     arg_parser = ArgParser(
         args_cls=AppArgs,
@@ -55,4 +67,4 @@ def parse_args(*args):
     parsed_args = arg_parser.parse_args(base_parser, *remaining_args)
     parsed_args.log()
 
-    return parsed_args
+    return parsed_args, base_parser

@@ -1,3 +1,4 @@
+import pickle
 from abc import ABC, abstractmethod
 
 from PIL.Image import Image
@@ -26,19 +27,15 @@ class ITensorHandler(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def resize(self, value, shape):
+        raise NotImplementedError()
+
+    @abstractmethod
     def normalise(self, x):
         raise NotImplementedError()
 
     @abstractmethod
     def concatenate(self, a, b, axis):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def save(self, data, path):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def load(self, path):
         raise NotImplementedError()
 
     @abstractmethod
@@ -55,10 +52,6 @@ class ITensorHandler(ABC):
 
     @abstractmethod
     def sum(self, data):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def unpack_checkpoint(self, checkpoint_data):
         raise NotImplementedError()
 
     @abstractmethod
@@ -91,4 +84,8 @@ class ITensorHandler(ABC):
 
     @abstractmethod
     def as_tensor(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def clone(self, value):
         raise NotImplementedError()
