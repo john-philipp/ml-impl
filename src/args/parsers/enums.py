@@ -23,7 +23,7 @@ class MiscAction(IEnum):
 
 class ModelAction(IEnum):
     TRAIN = "train"
-    INFER = "infer"
+    TEST = "test"
 
 
 class TensorHandler(IEnum):

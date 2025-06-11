@@ -2,7 +2,7 @@ from arg_parse.ifaces import IParserDef
 
 from src.args.defaults import Defaults
 from src.args.parsers.enums import Mode, Meta, TensorHandler, Device, Impl
-from src.args.parsers.model.parser_def_model_infer import ParserDefModelInfer
+from src.args.parsers.model.parser_def_model_test import ParserDefModelTest
 from src.args.parsers.model.parser_def_model_train import ParserDefModelTrain
 
 
@@ -12,7 +12,7 @@ class ParserDefModel(IParserDef):
 
         sub_parsers = [
             ParserDefModelTrain(),
-            ParserDefModelInfer()
+            ParserDefModelTest()
         ]
 
         parser = parent_parser.add_parser(

@@ -22,7 +22,7 @@ if __name__ == '__main__':
     config = Config.from_args(args_)
 
     # Validation.
-    if config.device == Device.CUDA and config._th != TensorHandler.TORCH:
+    if config.device == Device.CUDA and config.tensor_handler != TensorHandler.TORCH:
         raise ValueError("Need torch for CUDA.")
 
     log_handler = LogHandler()
@@ -35,9 +35,9 @@ if __name__ == '__main__':
                 trainer = Trainer(config, log_handler)
                 trainer.train()
 
-            elif args_.action == ModelAction.INFER:
+            elif args_.action == ModelAction.TEST:
                 trainer = Trainer(config, log_handler)
-                trainer.infer()
+                trainer.test()
 
             else:
                 raise ValueError(f"Unknown mode action: {args_.mode}.{args_.action}")
@@ -48,6 +48,7 @@ if __name__ == '__main__':
 
             else:
                 raise ValueError(f"Unknown misc action: {args_.mode}.{args_.action}")
+
         else:
             raise ValueError(f"Unknown mode: {args_.mode}")
 

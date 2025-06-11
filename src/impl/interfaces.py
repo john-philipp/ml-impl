@@ -119,7 +119,7 @@ class IImpl(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def infer(self, image_path, expected_label) -> float:
+    def test(self, image_path, expected_label) -> float:
         # Returns prediction.
         raise NotImplementedError()
 

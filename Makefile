@@ -10,6 +10,9 @@ alpha = 0.01
 epochs = 10000
 args =
 
+install-requirements:
+	pip install -r requirements.txt
+
 test-train-infer:
 	python3 . model train -t $(tensor) -d $(device) -p $(points) -o $(offset) -b $(batch) --testing -l $(alpha) -e $(epochs) && \
 	python3 . model infer -t $(tensor) -d $(device) -p $(points) -o $(offset) -b $(batch) --testing -c
