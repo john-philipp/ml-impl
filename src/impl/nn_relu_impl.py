@@ -200,7 +200,7 @@ class _NnReluImpl(IImpl):
 
         return self._j
 
-    def infer(self, image_path, expected_label):
+    def test(self, image_path, expected_label):
         self.m = 1
         self._X = self._th.zeros((self.dimensions, self.m))
         image_data = self.load_image_data(image_path)

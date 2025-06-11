@@ -1,0 +1,13 @@
+checkpoint_epochs: 1000
+use_checkpoint: false
+tensor_handler: torch
+learning_rate: 0.01
+batch_offset: 0
+batch_size: 100
+log_every: 100
+datasets:
+  -
+points: 32
+testing: false
+device: cuda
+epochs: 10000

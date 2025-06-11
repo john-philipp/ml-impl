@@ -45,11 +45,11 @@ class Trainer:
 
             self._stopwatch.start()
             total_epochs = self._config.epochs + self._epochs_trained
-            for epoch in range(self._epochs_trained, total_epochs):
+            for epoch in range(self._epochs_trained, total_epochs + 1):
                 cost = self._impl.train_epoch()
                 new_data = True
                 if epoch % self._config.log_every == 0:
-                    log.info(f"Epoch {epoch + 1}/{total_epochs} done after {self._stopwatch.lap():.3f}s: cost={cost.item():.3e}")
+                    log.info(f"Epoch {epoch}/{total_epochs} done after {self._stopwatch.lap():.3f}s: cost={cost.item():.3e}")
                 if self._tensor_handler.is_nan(cost):
                     log.error(f"Cost is nan. Quitting. Try again with lower learning rate.")
                     new_data = False
@@ -66,13 +66,13 @@ class Trainer:
             self._checkpoint_handler.save(
                 self._epochs_trained, cost.item(), self._impl.get_checkpoint_suffix(), self._impl.save_checkpoint)
 
-    def infer(self):
+    def test(self):
         config = self._config
         if len(config.datasets) != 2:
             raise ValueError("Must specify exactly two datasets.")
 
         # Infer.
-        log.info("Inferring...")
+        log.info("Testing...")
         total_count, total_passes = 0, 0
         for expected_label, dataset_path in enumerate(config.datasets):
             files = os.listdir(os.path.join(dataset_path, "test"))
@@ -80,7 +80,7 @@ class Trainer:
 
             count, passes = 0, 0
             for count, file in enumerate(files):
-                inferred = self._impl.infer(os.path.join(dataset_path, "test", file), expected_label).item()
+                inferred = self._impl.test(os.path.join(dataset_path, "test", file), expected_label).item()
                 inferred_label = 0 if inferred < 0.5 else 1
                 as_expected = inferred_label == expected_label
                 relation = "==" if as_expected else "!="
