@@ -84,7 +84,8 @@ class ParserDefModel(IParserDef):
 
             sub_parser.add_argument(
                 "--datasets", "-s",
-                help="Dataset folders, labels are set by position in the list. Require exactly two arguments.",
+                help="Dataset folders, labels are set by position in the list. Require exactly two arguments. "
+                     "Requires sub dirs train and test.",
                 default=[".datasets/cats_dogs/dogs", ".datasets/cats_dogs/cats"],
                 nargs="+")
 

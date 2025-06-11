@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import torch
 from PIL.Image import Image
@@ -41,18 +42,15 @@ class _TorchTensorHandler(ITensorHandler):
     def resize_array_1d(self, x, n):
         x.resize_(n)
 
+    def resize(self, value, shape):
+        value.resize_(shape)
+
     def normalise(self, x):
         # Torchvision normalises image data automatically.
         return x
 
     def concatenate(self, a, b, axis):
         return torch.cat((a, b), dim=axis)
-
-    def save(self, x, path):
-        torch.save(x, path)
-
-    def load(self, path):
-        return torch.load(path)
 
     def multiply(self, a, b):
         return torch.matmul(a, b)
@@ -65,12 +63,6 @@ class _TorchTensorHandler(ITensorHandler):
 
     def sum(self, x):
         return torch.sum(x)
-
-    def unpack_checkpoint(self, checkpoint_data):
-        w = checkpoint_data[:-1]
-        w.to(device=self._device)
-        b = checkpoint_data[-1].item()
-        return w, b
 
     def is_nan(self, value):
         return torch.isnan(value)
@@ -95,3 +87,6 @@ class _TorchTensorHandler(ITensorHandler):
 
     def diag(self, value):
         return torch.diag(value)
+
+    def clone(self, value):
+        return value.clone()

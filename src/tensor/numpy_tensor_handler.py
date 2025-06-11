@@ -1,10 +1,12 @@
 import numpy as np
+import numpy.random
 from PIL.Image import Image
 
 from src.tensor.interfaces import ITensorHandler
 
 
 class _NumpyTensorHandler(ITensorHandler):
+
     def zeros(self, shape):
         return np.zeros(shape)
 
@@ -17,17 +19,14 @@ class _NumpyTensorHandler(ITensorHandler):
     def resize_array_1d(self, x, n):
         x.resize((1, n))
 
+    def resize(self, value, shape):
+        value.resize(shape)
+
     def normalise(self, x):
         return x / 255
 
     def concatenate(self, a, b, axis):
         return np.concatenate((a, b), axis=axis)
-
-    def save(self, x, path):
-        np.save(path, x)
-
-    def load(self, path):
-        return np.load(path)
 
     def multiply(self, a, b):
         return np.dot(a, b)
@@ -41,9 +40,6 @@ class _NumpyTensorHandler(ITensorHandler):
     def sum(self, x):
         return np.sum(x)
 
-    def unpack_checkpoint(self, checkpoint_data):
-        return checkpoint_data[:-1], checkpoint_data[-1]
-
     def is_nan(self, value):
         return np.isnan(value)
 
@@ -56,5 +52,17 @@ class _NumpyTensorHandler(ITensorHandler):
     def d_relu(self, value):
         return (value > 0).astype(float)
 
+    def randn(self, shape):
+        return numpy.random.rand(*shape)
+
+    def sqrt(self, value):
+        return numpy.sqrt(value)
+
+    def as_tensor(self, value):
+        return value
+
     def diag(self, value):
         return np.diag(value)
+
+    def clone(self, value):
+        return value.copy()

@@ -35,7 +35,7 @@ class Trainer:
         try:
             if self._config.use_checkpoint:
                 self._epochs_trained = self._checkpoint_handler.load_latest(
-                    self._impl.image_shape, self._impl.try_load_checkpoint)
+                    self._impl.get_checkpoint_suffix(), self._impl.try_load_checkpoint)
 
             log.info("Training...")
             for label, dataset_path in enumerate(self._config.datasets):
@@ -56,7 +56,7 @@ class Trainer:
                     break
                 elif epoch % self._config.checkpoint_epochs == 0:
                     self._checkpoint_handler.save(
-                        epoch, self._impl.image_shape, cost.item(), self._impl.save_checkpoint)
+                        epoch, cost.item(), self._impl.get_checkpoint_suffix(), self._impl.save_checkpoint)
                     new_data = False
                 self._epochs_trained += 1
         except KeyboardInterrupt:
@@ -64,7 +64,7 @@ class Trainer:
 
         if new_data and not self._tensor_handler.is_nan(cost):
             self._checkpoint_handler.save(
-                self._epochs_trained, self._impl.image_shape, cost.item(), self._impl.save_checkpoint)
+                self._epochs_trained, cost.item(), self._impl.get_checkpoint_suffix(), self._impl.save_checkpoint)
 
     def infer(self):
         config = self._config

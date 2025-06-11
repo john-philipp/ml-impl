@@ -44,14 +44,13 @@ class CheckpointHandler:
     def full_path(self, relative_path):
         return os.path.join(self.base_dir, relative_path)
 
-    def save(self, epoch, shape, cost, cb_save: Callable[[str], None]):
+    def save(self, epoch, cost, suffix, cb_save: Callable[[str], None]):
         next_ = self.find_next()
-        checkpoint_name = f"{next_}_{epoch:06}_{cost:.2e}_{shape[0]}x{shape[1]}.{self.ext}"
+        checkpoint_name = f"{next_}_{epoch:06}_{cost:.2e}_{suffix}.{self.ext}"
         cb_save(self.full_path(checkpoint_name))
 
-    def load_latest(self, shape, cb_load: Callable[[str], None]):
+    def load_latest(self, suffix, cb_load: Callable[[str], None]):
         prev_checkpoint = None
-        shape_s = f"{shape[0]}x{shape[1]}"
 
         if self.prev_log_dirs:
             self.prev_log_dirs.sort(reverse=True)
@@ -60,7 +59,7 @@ class CheckpointHandler:
                     os.path.join(self.base_dir, "../..", prev_log_dir, CHECKPOINTS_REL_DIR))
                 latest_checkpoint = self.find_latest(checkpoint_dir)
                 # Need a checkpoint of same shape and same tensor handler (numpy, torch).
-                if latest_checkpoint and latest_checkpoint.endswith(f"{shape_s}.{self.ext}"):
+                if latest_checkpoint and latest_checkpoint.endswith(f"{suffix}.{self.ext}"):
                     prev_checkpoint = os.path.join(checkpoint_dir, latest_checkpoint)
                     break
 
